@@ -45,7 +45,7 @@ fn Home() -> Element {
             "Go to blog"
         }
         div {
-            class: "bg-green-500 flex flex-col items-center justify-center h-screen",
+            class: "bg-red-500 flex flex-col items-center justify-center",
             h1 { "High-Five counter: {count}" }
             button { onclick: move |_| count += 1, "Up high!" }
             button { onclick: move |_| count -= 1, "Down low!" }
