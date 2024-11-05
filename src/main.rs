@@ -5,7 +5,7 @@ use dioxus_logger::tracing::{info, Level};
 
 #[derive(Clone, Routable, Debug, PartialEq)]
 
-enum Route {
+pub enum Route {
     #[route("/")]
     Home {},
     #[route("/blog/:id")]
