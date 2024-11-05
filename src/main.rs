@@ -1,54 +1,22 @@
 #![allow(non_snake_case)]
 
+mod components;
+use components::input::Input;
+use components::navbar::Navbar;
+
+// use crate::routes::create_routes;
 use dioxus::prelude::*;
-use dioxus_logger::tracing::{info, Level};
-
-#[derive(Clone, Routable, Debug, PartialEq)]
-
-pub enum Route {
-    #[route("/")]
-    Home {},
-    #[route("/blog/:id")]
-    Blog { id: i32 },
-}
 
 fn main() {
-    // Init logger
-    dioxus_logger::init(Level::INFO).expect("failed to init logger");
-    info!("starting app");
     launch(App);
 }
 
 fn App() -> Element {
     rsx! {
-        Router::<Route> {}
-    }
-}
-
-#[component]
-fn Blog(id: i32) -> Element {
-    rsx! {
-        Link { to: Route::Home {}, "Go to counter" }
-        "Blog post {id}"
-    }
-}
-
-#[component]
-fn Home() -> Element {
-    let mut count = use_signal(|| 0);
-
-    rsx! {
-        Link {
-            to: Route::Blog {
-                id: count()
-            },
-            "Go to blog"
-        }
         div {
-            class: "bg-red-500 flex flex-col items-center justify-center",
-            h1 { "High-Five counter: {count}" }
-            button { onclick: move |_| count += 1, "Up high!" }
-            button { onclick: move |_| count -= 1, "Down low!" }
+            class : "flex flex-col items-center justify-center h-screen",
+            Navbar {}
+            Input {}
         }
     }
 }
