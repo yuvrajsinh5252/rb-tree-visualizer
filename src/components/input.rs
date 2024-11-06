@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 pub fn Input() -> Element {
     rsx! {
       div {
-        class : "flex flex-col items-center justify-center",
+        class: "flex flex-col border-2 items-center justify-center w-1/4",
         div {
           class: "flex flex-col",
           input {
