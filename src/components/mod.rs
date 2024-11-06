@@ -1,4 +1,4 @@
-pub mod button;
 pub mod canvas;
-pub mod input;
+pub mod controls;
 pub mod navbar;
+pub mod ui;
