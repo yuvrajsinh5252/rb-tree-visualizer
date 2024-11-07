@@ -1,80 +1,93 @@
 use dioxus::prelude::*;
 
+#[derive(Clone)]
+struct TreeNode {
+    value: i32,
+    color: String, // "black" or "red"
+    left: Option<Box<TreeNode>>,
+    right: Option<Box<TreeNode>>,
+}
+
 #[component]
 pub fn Canvas() -> Element {
+    // Example tree
+    let tree = Some(Box::new(TreeNode {
+        value: 1,
+        color: "black".into(),
+        left: Some(Box::new(TreeNode {
+            value: 2,
+            color: "black".into(),
+            left: None,
+            right: None,
+        })),
+        right: Some(Box::new(TreeNode {
+            value: 3,
+            color: "black".into(),
+            left: None,
+            right: Some(Box::new(TreeNode {
+                value: 4,
+                color: "red".into(),
+                left: None,
+                right: None,
+            })),
+        })),
+    }));
+
     rsx! {
         div {
-          class: "flex flex-col border-2  items-center justify-center w-3/4 rounded-lg",
-          svg {
-            width: "100%",
-            height: "100%",
-            view_box: "0 15 100 100",
+            class: "flex flex-col border-2 items-center justify-center w-3/4 rounded-lg",
+            svg {
+                width: "100%",
+                height: "100%",
+                view_box: "0 15 100 100",
+                {render_node(&tree, 50.0, 30.0, 20.0)}
+            }
+        }
+    }
+}
+
+fn render_node(node: &Option<Box<TreeNode>>, x: f32, y: f32, offset: f32) -> Element {
+    rsx! {
+        if let Some(node) = node {
+            // Render current node
             circle {
-              cx: "50",
-              cy: "30",
-              r: "5",
-              fill: "black",
+                cx: "{x}",
+                cy: "{y}",
+                r: "5",
+                fill: "{node.color}",
             }
-            line {
-              x1: "50",
-              y1: "35",
-              x2: "30",
-              y2: "60",
-              stroke: "black",
-              stroke_width: "0.5",
-              marker_end: "url(#arrowhead)",
+            text {
+                x: "{x}",
+                y: "{y}",
+                dy: ".3em",
+                text_anchor: "middle",
+                fill: "white",
+                font_size: "0.5em",
+                "{node.value}"
             }
-            defs {
-              marker {
-              id: "arrowhead",
-              marker_width: "10",
-              marker_height: "7",
-              ref_x: "0",
-              ref_y: "1.5",
-              orient: "auto",
-                path {
-                d: "M0,0 L0,3 L3,1.5 z",
-                fill: "black",
+            // Render lines and recursive nodes
+            if let Some(left) = &node.left {
+                line {
+                    x1: "{x}",
+                    y1: "{y + 5.0}",
+                    x2: "{x - offset}",
+                    y2: "{y + 30.0}",
+                    stroke: "black",
+                    stroke_width: "0.5",
                 }
-              }
+                { render_node(&Some(left.clone()), x - offset, y + 30.0, offset / 1.5) }
             }
-            circle {
-              cx: "28",
-              cy: "66",
-              r: "5",
-              fill: "black",
+            if let Some(right) = &node.right {
+                line {
+                    x1: "{x}",
+                    y1: "{y + 5.0}",
+                    x2: "{x + offset}",
+                    y2: "{y + 30.0}",
+                    stroke: "black",
+                    stroke_width: "0.5",
+                }
+                { render_node(&Some(right.clone()), x + offset, y + 30.0, offset / 1.5) }
             }
-            line {
-              x1: "50",
-              y1: "35",
-              x2: "70",
-              y2: "60",
-              stroke: "black",
-              stroke_width: "0.5",
-              marker_end: "url(#arrowhead)",
-            }
-            circle {
-              cx: "72",
-              cy: "66",
-              r: "5",
-              fill: "black",
-            }
-          line {
-            x1: "72",
-            y1: "66",
-            x2: "90",
-            y2: "90",
-            stroke: "black",
-            stroke_width: "0.5",
-            marker_end: "url(#arrowhead)",
-          }
-          circle {
-            cx: "92",
-            cy: "96",
-            r: "5",
-            fill: "red",
-          }
-          }
         }
     }
 }
