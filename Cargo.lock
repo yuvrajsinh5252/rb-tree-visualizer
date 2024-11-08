@@ -1528,6 +1528,8 @@ version = "0.1.0"
 dependencies = [
  "dioxus",
  "dioxus-logger",
+ "lazy_static",
+ "web-sys",
 ]
 
 [[package]]

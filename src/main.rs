@@ -1,15 +1,15 @@
 #![allow(non_snake_case)]
 
+mod algorithm;
 mod components;
+mod layout;
 mod pages;
-
-use pages::home::Home;
+mod store;
 
 use dioxus::prelude::*;
-
-fn main() {
-    launch(App);
-}
+use layout::Layout;
+use pages::home::Home;
+use pages::not_found::NotFound;
 
 #[derive(Routable, PartialEq, Clone)]
 enum Route {
@@ -19,18 +19,6 @@ enum Route {
     NotFound { segments: Vec<String> },
 }
 
-#[component]
-fn NotFound(segments: Vec<String>) -> Element {
-    rsx! {
-        div {
-            class: "flex flex-col items-center justify-center h-screen",
-            "404 Not Found"
-        }
-    }
-}
-
-fn App() -> Element {
-    rsx! {
-        Router::<Route> {}
-    }
+fn main() {
+    launch(Layout);
 }

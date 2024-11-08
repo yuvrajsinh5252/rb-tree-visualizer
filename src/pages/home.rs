@@ -1,3 +1,4 @@
+// use crate::store::COUNT;
 use dioxus::prelude::*;
 
 use crate::components::{canvas::Canvas, controls::Controls, navbar::Navbar};
