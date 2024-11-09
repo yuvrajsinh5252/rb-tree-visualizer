@@ -27,39 +27,40 @@ fn render_node(node: &Box<Node<i32>>, x: f32, y: f32, offset: f32) -> Element {
             circle {
                 cx: x.to_string(),
                 cy: y.to_string(),
-                r: "10",
+                r: "5",
                 fill: if node.color == Color::Red { "red" } else { "black" },
             }
             text {
-                x: (x - 5.0).to_string(),
-                y: (y + 5.0).to_string(),
+                x: x.to_string(),
+                y: (y + 2.0).to_string(),
+                text_anchor: "middle",
                 fill: "white",
+                font_size: "5",
                 {node.value.to_string()}
             }
         }
 
-        if node.right.is_some() {
+        if let Some(right) = &node.right {
             line {
-                x1: (x + 5.0).to_string(),
-                y1: (y + 8.0).to_string(),
+                x1: (x + 3.2).to_string(),
+                y1: (y + 3.2).to_string(),
                 x2: (x + offset).to_string(),
-                y2: (y + 30.0).to_string(),
+                y2: (y + offset).to_string(),
                 stroke: "black",
                 stroke_width: "0.5",
             }
-            {render_node(node.right.as_ref().unwrap(), x + offset, y + offset, offset)}
+            {render_node(right, x + offset, y + offset, offset)}
         }
-        if node.left.is_some() {
-            {render_node(node.left.as_ref().unwrap(), x - offset, y + offset, offset)}
+        if let Some(left) = &node.left {
             line {
-                x1: (x - 5.0).to_string(),
-                y1: (y + 8.0).to_string(),
+                x1: (x - 3.2).to_string(),
+                y1: (y + 3.2).to_string(),
                 x2: (x - offset).to_string(),
-                y2: (y + 30.0).to_string(),
+                y2: (y + offset).to_string(),
                 stroke: "black",
                 stroke_width: "0.5",
             }
-            {render_node(node.left.as_ref().unwrap(), x - offset, y + offset, offset)}
+            {render_node(left, x - offset, y + offset, offset)}
         }
     }
 }
