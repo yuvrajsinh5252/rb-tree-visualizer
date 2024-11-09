@@ -1,5 +1,5 @@
 [package]
-name = "rbt-visualizer"
+name = "temp2"
 version = "0.1.0"
 authors = ["Yuvrajsinh Gohil <yuvrajsinh476@gmail.com>"]
 edition = "2021"
@@ -9,8 +9,5 @@ edition = "2021"
 [dependencies]
 
 dioxus = { version = "0.5", features = ["web", "router"] }
-
-# Debug
 dioxus-logger = "0.5.1"
-lazy_static = "1.5.0"
 web-sys = "0.3"
