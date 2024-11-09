@@ -1,38 +1,11 @@
+use crate::{
+    algorithm::tree::{Color, Node},
+    store::RED_BLACK_TREE,
+};
 use dioxus::prelude::*;
-
-#[derive(Clone)]
-struct TreeNode {
-    value: i32,
-    color: String, // "black" or "red"
-    left: Option<Box<TreeNode>>,
-    right: Option<Box<TreeNode>>,
-}
 
 #[component]
 pub fn Canvas() -> Element {
-    // Example tree
-    let tree = Some(Box::new(TreeNode {
-        value: 1,
-        color: "black".into(),
-        left: Some(Box::new(TreeNode {
-            value: 2,
-            color: "black".into(),
-            left: None,
-            right: None,
-        })),
-        right: Some(Box::new(TreeNode {
-            value: 3,
-            color: "black".into(),
-            left: None,
-            right: Some(Box::new(TreeNode {
-                value: 4,
-                color: "red".into(),
-                left: None,
-                right: None,
-            })),
-        })),
-    }));
-
     rsx! {
         div {
             class: "flex flex-col border-2 items-center justify-center w-3/4 rounded-lg",
@@ -40,54 +13,53 @@ pub fn Canvas() -> Element {
                 width: "100%",
                 height: "100%",
                 view_box: "0 15 100 100",
-                {render_node(&tree, 50.0, 30.0, 20.0)}
+                if let Some(root) = &(*RED_BLACK_TREE.read()).root {
+                    {render_node(root, 50.0, 30.0, 30.0)}
+                }
             }
         }
     }
 }
 
-fn render_node(node: &Option<Box<TreeNode>>, x: f32, y: f32, offset: f32) -> Element {
+fn render_node(node: &Box<Node<i32>>, x: f32, y: f32, offset: f32) -> Element {
     rsx! {
-        if let Some(node) = node {
-            // Render current node
+        g {
             circle {
-                cx: "{x}",
-                cy: "{y}",
-                r: "5",
-                fill: "{node.color}",
+                cx: x.to_string(),
+                cy: y.to_string(),
+                r: "10",
+                fill: if node.color == Color::Red { "red" } else { "black" },
             }
             text {
-                x: "{x}",
-                y: "{y}",
-                dy: ".3em",
-                text_anchor: "middle",
+                x: (x - 5.0).to_string(),
+                y: (y + 5.0).to_string(),
                 fill: "white",
-                font_size: "0.5em",
-                "{node.value}"
+                {node.value.to_string()}
             }
-            // Render lines and recursive nodes
-            if let Some(left) = &node.left {
-                line {
-                    x1: "{x}",
-                    y1: "{y + 5.0}",
-                    x2: "{x - offset}",
-                    y2: "{y + 30.0}",
-                    stroke: "black",
-                    stroke_width: "0.5",
-                }
-                { render_node(&Some(left.clone()), x - offset, y + 30.0, offset / 1.5) }
+        }
+
+        if node.right.is_some() {
+            line {
+                x1: (x + 5.0).to_string(),
+                y1: (y + 8.0).to_string(),
+                x2: (x + offset).to_string(),
+                y2: (y + 30.0).to_string(),
+                stroke: "black",
+                stroke_width: "0.5",
             }
-            if let Some(right) = &node.right {
-                line {
-                    x1: "{x}",
-                    y1: "{y + 5.0}",
-                    x2: "{x + offset}",
-                    y2: "{y + 30.0}",
-                    stroke: "black",
-                    stroke_width: "0.5",
-                }
-                { render_node(&Some(right.clone()), x + offset, y + 30.0, offset / 1.5) }
+            {render_node(node.right.as_ref().unwrap(), x + offset, y + offset, offset)}
+        }
+        if node.left.is_some() {
+            {render_node(node.left.as_ref().unwrap(), x - offset, y + offset, offset)}
+            line {
+                x1: (x - 5.0).to_string(),
+                y1: (y + 8.0).to_string(),
+                x2: (x - offset).to_string(),
+                y2: (y + 30.0).to_string(),
+                stroke: "black",
+                stroke_width: "0.5",
             }
+            {render_node(node.left.as_ref().unwrap(), x - offset, y + offset, offset)}
         }
     }
 }

@@ -1,22 +1,20 @@
-use web_sys::console;
-
 #[derive(Debug, PartialEq, Eq)]
-enum Color {
+pub enum Color {
     Red,
     Black,
 }
 
 #[derive(Debug)]
 pub struct Node<T> {
-    value: T,
-    color: Color,
-    left: Option<Box<Node<T>>>,
-    right: Option<Box<Node<T>>>,
-    parent: Option<*mut Node<T>>,
+    pub value: T,
+    pub color: Color,
+    pub left: Option<Box<Node<T>>>,
+    pub right: Option<Box<Node<T>>>,
+    pub parent: Option<*mut Node<T>>,
 }
 
 impl<T> Node<T> {
-    fn new(value: T, color: Color) -> Self {
+    pub fn new(value: T, color: Color) -> Self {
         Node {
             value,
             color,
@@ -30,6 +28,7 @@ impl<T> Node<T> {
 pub struct RedBlackTree<T> {
     pub root: Option<Box<Node<T>>>,
 }
+
 impl<T: Ord + std::fmt::Debug> RedBlackTree<T> {
     pub fn new() -> Self {
         RedBlackTree { root: None }
@@ -53,7 +52,7 @@ impl<T: Ord + std::fmt::Debug> RedBlackTree<T> {
             if root.left.is_none() {
                 root.left = Some(new_node);
                 root.left.as_mut().unwrap().parent = Some(root.as_mut() as *mut _);
-                self.fix_insert(root.left.as_mut().unwrap());
+                // self.fix_insert(root.left.as_mut().unwrap());
             } else {
                 self.insert_node(root.left.as_mut().unwrap(), new_node);
             }
@@ -61,15 +60,15 @@ impl<T: Ord + std::fmt::Debug> RedBlackTree<T> {
             if root.right.is_none() {
                 root.right = Some(new_node);
                 root.right.as_mut().unwrap().parent = Some(root.as_mut() as *mut _);
-                self.fix_insert(root.right.as_mut().unwrap());
+                // self.fix_insert(root.right.as_mut().unwrap());
             } else {
                 self.insert_node(root.right.as_mut().unwrap(), new_node);
             }
         }
     }
 
-    fn fix_insert(&mut self, node: &mut Box<Node<T>>) {
-        // Fixing the tree after insertion
-        // This is a placeholder for the actual fix-up logic
-    }
+    // fn fix_insert(&mut self, node: &mut Box<Node<T>>) {
+    // Fixing the tree after insertion
+    // This is a placeholder for the actual fix-up logic
+    // }
 }
