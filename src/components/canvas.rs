@@ -10,7 +10,24 @@ pub fn Canvas() -> Element {
             svg {
                 width: "100%",
                 height: "100%",
-                view_box: "-50 0 300 300",
+                view_box: "-50 -20 300 300",
+
+                defs {
+                    marker {
+                        id: "arrowhead",
+                        view_box: "0 0 10 10",
+                        ref_x: "11",
+                        ref_y: "1.5",
+                        marker_width: "30",
+                        marker_height: "18",
+                        orient: "auto",
+                        path {
+                            d: "M0,0 L0,3 L3,1.5 z",
+                            fill: "black"
+                        }
+                    }
+                }
+
                 if let Some(root) = &(*RED_BLACK_TREE.read()).root {
                     {render_node(*root, 100.0, 20.0)}
                 }
@@ -37,7 +54,7 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
             }
             text {
                 x: x.to_string(),
-                y: (y + 3.0).to_string(),
+                y: (y + 2.0).to_string(),
                 text_anchor: "middle",
                 fill: "white",
                 font_size: "4",
@@ -46,24 +63,26 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
 
             if let Some(left) = node.left {
                 line {
-                    x1: x.to_string(),
-                    y1: y.to_string(),
+                    x1: (x - 2.0).to_string(),
+                    y1: (y + 7.3).to_string(),
                     x2: (x - h_gap).to_string(),
                     y2: (y + v_gap).to_string(),
                     stroke: "black",
                     stroke_width: "0.5",
+                    marker_end: "url(#arrowhead)",
                 }
                 {render_node(left, x - h_gap, y + v_gap)}
             }
 
             if let Some(right) = node.right {
                 line {
-                    x1: x.to_string(),
-                    y1: y.to_string(),
+                    x1: (x + 2.0).to_string(),
+                    y1: (y + 7.3).to_string(),
                     x2: (x + h_gap).to_string(),
                     y2: (y + v_gap).to_string(),
                     stroke: "black",
                     stroke_width: "0.5",
+                    marker_end: "url(#arrowhead)",
                 }
                 {render_node(right, x + h_gap, y + v_gap)}
             }
