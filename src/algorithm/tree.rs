@@ -17,7 +17,6 @@ pub struct Node<K, V> {
     pub parent: Option<usize>,
     pub x: f32,
     pub y: f32,
-    pub status: Option<String>,
 }
 
 #[derive(Copy, Clone)]
@@ -429,7 +428,6 @@ where
                 color: Color::red(),
                 x: 0.0,
                 y: 0.0,
-                status: None,
             });
             Some(the_id)
         }

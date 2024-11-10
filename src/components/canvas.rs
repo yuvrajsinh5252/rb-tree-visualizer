@@ -1,54 +1,15 @@
-use crate::components::ui::button::Button;
+use crate::components::canvas_control::CanvasControls;
 use crate::store::RED_BLACK_TREE;
-use crate::store::SELECTED_TREE;
+use crate::store::STATUS;
+use crate::store::SVG_VIEW_BOX;
 use dioxus::prelude::*;
 
 #[component]
 pub fn Canvas() -> Element {
-    let mut SVG_VIEW_BOX: Signal<Vec<f32>> = use_signal(|| vec![-50.0, -20.0, 300.0, 300.0]);
-
     rsx! {
         div {
             class: "flex flex-col border-2 items-center relative justify-center w-3/4 rounded-lg",
-            div {
-                class: "absolute top-0 right-0 p-1 pr-2",
-                h1 {
-                    class: "text-sm font-semibold",
-                    " Algorithm: {SELECTED_TREE.read()}"
-                }
-            }
-            div {
-                class: "absolute top-0 left-0 p-1 pl-2 flex gap-2",
-                Button {
-                    value: "➕",
-                    onclick: move |_| {
-                        let mut svg_view_box = SVG_VIEW_BOX.read().clone();
-                        let zoom_factor = 0.1;
-                        let width_reduction = svg_view_box[2] * zoom_factor;
-                        let height_reduction = svg_view_box[3] * zoom_factor;
-                        svg_view_box[0] += width_reduction / 2.0;
-                        svg_view_box[1] += height_reduction / 2.0;
-                        svg_view_box[2] -= width_reduction;
-                        svg_view_box[3] -= height_reduction;
-                        SVG_VIEW_BOX.set(svg_view_box as Vec<f32>);
-                    }
-                }
-                Button {
-                    value: "➖",
-                    onclick: move |_| {
-                        let mut svg_view_box = SVG_VIEW_BOX.read().clone();
-                        let zoom_factor = 0.1;
-                        let width_increase = svg_view_box[2] * zoom_factor;
-                        let height_increase = svg_view_box[3] * zoom_factor;
-                        svg_view_box[0] -= width_increase / 2.0;
-                        svg_view_box[1] -= height_increase / 2.0;
-                        svg_view_box[2] += width_increase;
-                        svg_view_box[3] += height_increase;
-                        SVG_VIEW_BOX.set(svg_view_box as Vec<f32>);
-                    }
-                }
-            }
-
+            CanvasControls { status: "{STATUS.read()}" }
             svg {
                 class: "overflow-scroll",
                 width: "100%",
@@ -85,6 +46,8 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
     let node = &tree.nodes[index];
 
     let h_gap = 4.0 * (node.size as f32);
+
+    // status.set(node.status.clone());
 
     rsx! {
         g {

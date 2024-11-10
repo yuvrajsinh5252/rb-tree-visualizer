@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 pub fn Layout() -> Element {
     rsx! {
         div {
-            class: "flex flex-col h-screen",
+            class: "flex flex-col h-screen bg-zinc-50",
             Navbar {}
             div {
                 class: "flex flex-col flex-1",

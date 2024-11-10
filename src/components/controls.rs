@@ -92,6 +92,18 @@ pub fn Controls() -> Element {
           select {
             class: "w-full min-w-44 border-2 p-1 rounded-md",
             onchange: move |e| {
+              let selected_tree = SELECTED_TREE.read().clone();
+
+              match selected_tree.as_str() {
+                "Red Black Tree" => {
+                  *RED_BLACK_TREE.write() = Default::default();
+                }
+                "Binomial Heap" => {
+                  // Call Binomial Heap clear function
+                }
+                _ => {}
+              }
+
               *SELECTED_TREE.write() = e.value();
               CONTROLS.write().ind.set(-1);
               TREE_STATES.write().clear();
