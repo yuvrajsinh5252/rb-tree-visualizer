@@ -24,7 +24,8 @@ pub fn Controls() -> Element {
           Button {
             value: "Insert",
             onclick: move |_| {
-              RED_BLACK_TREE.write().insert(*addNode.read());
+              RED_BLACK_TREE.write().insert(*addNode.read(), Default::default());
+              addNode.set(0);
             },
             disabled: false
          }
@@ -40,19 +41,19 @@ pub fn Controls() -> Element {
           Button {
             value: "Delete",
             onclick: move |_| {
-              // RED_BLACK_TREE.write().delete(*addNode.read());
+              RED_BLACK_TREE.write().delete(&(*deleteNode.read()));
+              deleteNode.set(0);
             },
             disabled: false,
           }
         }
         div {
-          class: "flex justify-between mx-1 items-center",
-          h3 { "Select Algorithm" }
+          class: "flex justify-between gap-8 mx-1 items-center",
+          h3 { "Algorithm" }
           select {
-            class: "w-1/2 border-2 p-1 rounded-md",
+            class: "w-full min-w-44 border-2 p-1 rounded-md",
             option { "Red Black Tree" }
             option { "Binomial Heap" }
-            option { "............." }
           }
         }
 
@@ -62,7 +63,12 @@ pub fn Controls() -> Element {
             value: "Print Tree",
             onclick: move |_| {
               let tree = RED_BLACK_TREE.read();
-              console::log_1(&format!("{:?}", tree.root).into());
+              let mut k = 0;
+              for (key, value) in tree.into_iter() {
+                  console::log_1(&format!("{:?} -> {:?}", key, value).into());
+                  assert!(*key > k);
+                  k = *key;
+              }
             },
             disabled: false,
           }
