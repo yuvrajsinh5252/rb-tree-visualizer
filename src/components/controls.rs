@@ -1,7 +1,6 @@
 use crate::components::ui::button::Button;
 use crate::components::ui::input::Input;
 use crate::store::RED_BLACK_TREE;
-use web_sys::console;
 
 use dioxus::prelude::*;
 
@@ -54,23 +53,6 @@ pub fn Controls() -> Element {
             class: "w-full min-w-44 border-2 p-1 rounded-md",
             option { "Red Black Tree" }
             option { "Binomial Heap" }
-          }
-        }
-
-        div {
-          class: "flex gap-2",
-          Button {
-            value: "Print Tree",
-            onclick: move |_| {
-              let tree = RED_BLACK_TREE.read();
-              let mut k = 0;
-              for (key, value) in tree.into_iter() {
-                  console::log_1(&format!("{:?} -> {:?}", key, value).into());
-                  assert!(*key > k);
-                  k = *key;
-              }
-            },
-            disabled: false,
           }
         }
       }

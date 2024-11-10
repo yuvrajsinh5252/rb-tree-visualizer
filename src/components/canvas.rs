@@ -1,6 +1,5 @@
 use crate::store::RED_BLACK_TREE;
 use dioxus::prelude::*;
-use web_sys::console;
 
 #[component]
 pub fn Canvas() -> Element {
