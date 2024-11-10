@@ -6,6 +6,7 @@ pub struct Controls {
     pub speed: Signal<i32>,
 }
 
+pub static SELECTED_TREE: GlobalSignal<String> = Signal::global(|| "not selected".to_string());
 pub static RED_BLACK_TREE: GlobalSignal<RBTree<i32, String>> = Signal::global(|| RBTree::new());
 pub static CONTROLS: GlobalSignal<Controls> = Signal::global(|| Controls {
     ind: Signal::new(-1),
