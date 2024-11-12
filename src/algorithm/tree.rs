@@ -15,8 +15,6 @@ pub struct Node<K, V> {
     pub size: usize,
     pub color: Color,
     pub parent: Option<usize>,
-    pub x: f32,
-    pub y: f32,
 }
 
 #[derive(Copy, Clone)]
@@ -82,8 +80,7 @@ impl Debug for Color {
     }
 }
 
-// RED-BLACK TREE IMPLEMENTATION STARTS HERE //
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RBTree<K, V>
 where
     K: Ord,
@@ -113,24 +110,6 @@ impl DeleteResult {
     }
 }
 
-///
-/// A Red-Black BST Implementation, using a Vec for storing the actual node data.
-/// Rather than linking directly from one node to another, each node's `left` and `right`
-/// fields contain an `Option<usize>`, where `Some(id)` refers to an index within the `nodes` Vec.
-///
-/// Inspiration for this approach taken from various examples using a vector-based _arena_.
-///
-/// The design goals here were to keep the tree data exclusively inside of the vector in order to
-/// take advantage of performance optimizations resulting from use of contiguous blocks of memory.
-///
-/// It remains to be seen if this actually speeds things up, pending some benchmarking.
-///
-/// The trick with all recursive data structures I've seen so far, is in satisfying the borrow checker.
-/// This was solved by making it so that all node manipulations are done by moving only `Copy` values,
-/// so as to circumvent the _cannot move from borrowed value_ error.
-///
-/// The algorithm itself is Robert Sedgewick's algorithm as [written in java](https://algs4.cs.princeton.edu/33balanced/RedBlackBST.java.html).
-
 impl<K, V> RBTree<K, V>
 where
     K: Ord + Debug,
@@ -143,17 +122,6 @@ where
     pub fn clear_tree(&mut self) {
         self.root = None;
         self.nodes.clear();
-    }
-
-    pub fn random(&self) -> Option<(&K, &V)> {
-        if self.is_empty() {
-            None
-        } else {
-            let rank = 10;
-            // let rank = rand::thread_rng().gen_range(0, self.len());
-            let node = &self.nodes[self.select_from_node(rank, self.root.unwrap())];
-            Some((&node.key, &node.value))
-        }
     }
 
     pub fn get(&self, key: &K) -> Option<&V> {
@@ -173,7 +141,6 @@ where
     pub fn insert(&mut self, key: K, value: V) {
         self.root = Self::put(self.root, None, key, value, &mut self.nodes);
         self.nodes[self.root.unwrap()].color = Color::black();
-        // assert!(self.check());
     }
 
     pub fn len(&self) -> usize {
@@ -184,9 +151,6 @@ where
         self.root.is_none()
     }
 
-    /**
-     * It returns true if the left and right heights differ by one or zero.
-     */
     pub fn is_balanced(&self) -> bool {
         let mut black = 0;
         let mut node = self.root;
@@ -218,7 +182,6 @@ where
             return;
         }
 
-        // if both children of root are black, set root to red
         {
             let root = self.root.unwrap();
             if Self::is_red(self.nodes[root].left, &self.nodes)
@@ -234,7 +197,6 @@ where
         if !self.is_empty() {
             self.nodes[self.root.unwrap()].color = Color::black();
         }
-        // assert!(self.check());
     }
 
     pub fn print(&self) {
@@ -426,8 +388,6 @@ where
                 left: None,
                 right: None,
                 color: Color::red(),
-                x: 0.0,
-                y: 0.0,
             });
             Some(the_id)
         }
@@ -465,7 +425,7 @@ where
         let other = nodes.len() - 1;
         nodes.swap(id, other);
         if let Some(parent) = nodes[id].parent {
-            let parent_node = nodes.get_mut(parent).unwrap();
+            let mut parent_node = nodes.get_mut(parent).unwrap();
             if parent_node.left.is_some() && parent_node.left.unwrap() == other {
                 parent_node.left = Some(id);
             } else {
@@ -508,35 +468,6 @@ where
         } else {
             0
         }
-    }
-
-    /**
-     * Debug Functions
-     */
-
-    pub fn check(&self) -> bool {
-        let mut good = self.is_bst();
-        if !good {
-            println!("Not in symmetric order");
-        }
-        if !self.is_size_consistent() {
-            println!("Subtree counts not consistent");
-            good = false;
-        }
-        if !self.is_rank_consistent() {
-            println!("Ranks not consistent");
-            good = false;
-        }
-        if !self.is_23() {
-            println!("Not a 2-3 tree");
-            good = false;
-        }
-        if !self.is_balanced() {
-            println!("Not balanced");
-            self.print();
-            good = false;
-        }
-        good
     }
 
     pub fn is_rank_consistent(&self) -> bool {
@@ -674,15 +605,6 @@ where
     }
 
     fn find_next(&self, mut from: usize) -> Option<usize> {
-        // If there's a right from here, find the min value from there.
-        // Don't care about current left.
-        // Go to parent.
-        // While parent key is less than my key,
-        //   that means that I was on the right and I should go up again.
-        //
-        // If there is a right from here, that means greater than the current
-        // key but not necessarily greater than the _from_ key.
-        // Only traverse up the right branch if right key < mine.
         let the_key = &self.nodes[from].key;
         if let Some(right) = self.nodes[from].right {
             from = Self::min(right, &self.nodes);
@@ -764,5 +686,103 @@ where
         } else {
             None
         }
+    }
+}
+
+mod test {
+    use super::RBTree;
+
+    #[test]
+    fn test_tree_1() {
+        let mut tree = RBTree::new();
+        tree.insert(12, 32);
+        tree.insert(32, 44);
+        tree.insert(123, 321);
+        tree.insert(123, 321);
+        tree.insert(1, 2);
+        tree.insert(14, 32);
+        tree.insert(20, 41);
+        tree.insert(6, 64);
+        tree.insert(41, 22);
+        tree.insert(122, 14);
+        tree.insert(41, 99);
+
+        assert_eq!(tree.len(), tree.into_iter().count());
+        tree.print();
+
+        let mut k = 0;
+        for (key, value) in tree.into_iter() {
+            println!("{:?} -> {:?}", key, value);
+            assert!(*key > k);
+            k = *key;
+        }
+
+        assert_eq!(99, *tree.get(&41).unwrap());
+        assert!(tree.is_balanced());
+        assert_eq!(9, tree.len());
+
+        assert_rm(41, &mut tree, 8);
+        assert_rm(122, &mut tree, 7);
+        assert_rm(6, &mut tree, 6);
+        assert_rm(20, &mut tree, 5);
+        assert_rm(14, &mut tree, 4);
+        assert_rm(1, &mut tree, 3);
+        assert_rm(123, &mut tree, 2);
+        assert_rm(32, &mut tree, 1);
+        assert_rm(12, &mut tree, 0);
+        assert!(tree.is_empty());
+    }
+
+    fn assert_rm(val: u32, tree: &mut RBTree<u32, u32>, size: usize) {
+        assert!(tree.is_balanced());
+        assert!(tree.contains(&val));
+        tree.delete(&val);
+        assert!(!tree.contains(&val));
+        if !tree.is_balanced() {
+            println!("Not balanced!");
+            tree.print();
+        }
+        assert!(tree.is_balanced());
+        assert_eq!(size, tree.len());
+    }
+
+    #[test]
+    fn test_tree_strings() {
+        let mut tree = RBTree::new();
+        tree.insert(12, "value: V");
+        tree.insert(32, "44");
+        tree.insert(123, "321");
+        tree.insert(123, "321");
+        tree.insert(1, "2");
+        tree.insert(14, "32");
+        tree.insert(20, "41");
+        tree.insert(6, "64");
+        tree.insert(41, "22");
+        tree.insert(122, "14");
+        tree.insert(41, "99");
+
+        assert_eq!("99", *tree.get(&41).unwrap());
+        assert!(tree.is_balanced());
+        assert_eq!(9, tree.len());
+    }
+
+    #[test]
+    fn test_tree_string_keys() {
+        let mut tree = RBTree::new();
+        tree.insert("12", "value: V");
+        tree.insert("32", "44");
+        tree.insert("123", "321");
+        tree.insert("123", "321");
+        tree.insert("1", "2");
+        tree.insert("14", "32");
+        tree.insert("20", "41");
+        tree.insert("6", "64");
+        tree.insert("41", "22");
+        tree.insert("122", "14");
+        tree.insert("41", "99");
+
+        assert_eq!("99", *tree.get(&"41").unwrap());
+        assert!(tree.is_balanced());
+        assert_eq!(9, tree.len());
     }
 }

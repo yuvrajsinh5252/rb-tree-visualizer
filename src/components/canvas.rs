@@ -47,8 +47,6 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
 
     let h_gap = 4.0 * (node.size as f32);
 
-    // status.set(node.status.clone());
-
     rsx! {
         g {
             circle {
@@ -64,7 +62,7 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
                 text_anchor: "middle",
                 fill: "white",
                 font_size: "4",
-                "{node.key}"
+                "{node.value}"
             }
 
             if let Some(left) = node.left {

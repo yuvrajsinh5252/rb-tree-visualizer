@@ -6,6 +6,7 @@ use crate::store::SELECTED_TREE;
 use crate::store::TREE_STATES;
 
 use dioxus::prelude::*;
+use web_sys::console;
 
 #[component]
 pub fn Controls() -> Element {
@@ -36,7 +37,7 @@ pub fn Controls() -> Element {
 
               match selected_tree.as_str() {
                 "Red Black Tree" => {
-                  RED_BLACK_TREE.write().insert(*addNode.read(), Default::default());
+                  RED_BLACK_TREE.write().insert(*addNode.read(), *addNode.read());
                 }
                 "Binomial Heap" => {
                   // Call Binomial Heap insertion function
