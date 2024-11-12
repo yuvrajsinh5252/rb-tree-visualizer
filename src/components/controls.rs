@@ -6,7 +6,6 @@ use crate::store::SELECTED_TREE;
 use crate::store::TREE_STATES;
 
 use dioxus::prelude::*;
-use web_sys::console;
 
 #[component]
 pub fn Controls() -> Element {
