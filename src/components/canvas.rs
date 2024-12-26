@@ -33,7 +33,7 @@ pub fn Canvas() -> Element {
                 }
 
                 if let Some(root) = &(*RED_BLACK_TREE.read()).root {
-                    {render_node(*root, 100.0, 20.0)}
+                    {render_node(root, 100.0, 20.0)}
                 }
             }
         }
