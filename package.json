@@ -1,1 +1,9 @@
-{ "dependencies": { "@types/node": "^22.9.0", "tailwindcss-animated": "^1.1.2" } }
+{
+  "name": "rbt-visualiser",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

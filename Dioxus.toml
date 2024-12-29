@@ -1,39 +1,20 @@
 [application]
 
 # App (Project) Name
-name = "RBT-visualizer"
-
-# Dioxus App Default Platform
-# web, desktop, fullstack
-default_platform = "web"
-
-# `build` & `serve` dist path
-out_dir = "dist"
-
-# resource (public) file folder
-asset_dir = "public"
+name = "rbt-visualiser"
 
 [web.app]
 
 # HTML title tag content
-title = "RBT-Visualizer"
-
-[web.watcher]
-
-# when watcher trigger, regenerate the `index.html`
-reload_html = true
-
-# which files or dirs will be watcher monitoring
-watch_path = ["src", "public"]
+title = "rbt-visualiser"
 
 # include `assets` in web platform
 [web.resource]
 
-# CSS style file
+# Additional CSS style files
+style = ["assets/tailwind.css"]
 
-style = ["/main.css"]
-
-# Javascript code file
+# Additional JavaScript files
 script = []
 
 [web.resource.dev]
