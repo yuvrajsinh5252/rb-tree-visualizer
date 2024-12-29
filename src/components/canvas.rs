@@ -1,8 +1,10 @@
+use crate::algorithm::tree::Node;
 use crate::components::canvas_control::CanvasControls;
 use crate::store::RED_BLACK_TREE;
 use crate::store::STATUS;
 use crate::store::SVG_VIEW_BOX;
 use dioxus::prelude::*;
+use web_sys::console;
 
 #[component]
 pub fn Canvas() -> Element {
@@ -33,6 +35,7 @@ pub fn Canvas() -> Element {
                 }
 
                 if let Some(root) = &(*RED_BLACK_TREE.read()).root {
+                    {console::log_1(&format!("{:?}", root).into())}
                     {render_node(root, 100.0, 20.0)}
                 }
             }
@@ -40,12 +43,12 @@ pub fn Canvas() -> Element {
     }
 }
 
-fn render_node(index: usize, x: f32, y: f32) -> Element {
+fn render_node(node: &Box<Node<i32>>, x: f32, y: f32) -> Element {
     let v_gap = 30.0;
-    let tree = RED_BLACK_TREE.read();
-    let node = &tree.nodes[index];
+    let node_val = node.value;
+    let size = node.size;
 
-    let h_gap = 4.0 * (node.size as f32);
+    let h_gap = 4.0 * (size as f32);
 
     rsx! {
         g {
@@ -54,7 +57,7 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
                 cy: y.to_string(),
                 r: "8",
                 stroke: "black",
-                fill: if format!("{:?}", node.color ) == "RED" { "indianred" } else { "gray" },
+                fill: if format!("{:?}", node.color ) == "Red" { "indianred" } else { "gray" },
             }
             text {
                 x: x.to_string(),
@@ -62,10 +65,10 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
                 text_anchor: "middle",
                 fill: "white",
                 font_size: "4",
-                "{node.value}"
+                "{node_val}"
             }
 
-            if let Some(left) = node.left {
+            if let Some(ref left) = &node.left {
                 line {
                     x1: (x - 2.0).to_string(),
                     y1: (y + 7.3).to_string(),
@@ -78,7 +81,7 @@ fn render_node(index: usize, x: f32, y: f32) -> Element {
                 {render_node(left, x - h_gap, y + v_gap)}
             }
 
-            if let Some(right) = node.right {
+            if let Some(ref right) = &node.right {
                 line {
                     x1: (x + 2.0).to_string(),
                     y1: (y + 7.3).to_string(),

@@ -36,7 +36,7 @@ pub fn Controls() -> Element {
 
               match selected_tree.as_str() {
                 "Red Black Tree" => {
-                  RED_BLACK_TREE.write().insert(*addNode.read(), *addNode.read());
+                  RED_BLACK_TREE.write().insert(*addNode.read());
                 }
                 "Binomial Heap" => {
                   // Call Binomial Heap insertion function
@@ -71,7 +71,7 @@ pub fn Controls() -> Element {
               let selected_tree = SELECTED_TREE.read().clone();
               match selected_tree.as_str() {
                 "Red Black Tree" => {
-                  RED_BLACK_TREE.write().delete(&(*deleteNode.read()));
+                  // RED_BLACK_TREE.write().delete(&(*deleteNode.read()));
                 }
                 "Binomial Heap" => {
                   // Call Binomial Heap deletion function
