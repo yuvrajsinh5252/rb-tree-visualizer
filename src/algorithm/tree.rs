@@ -13,6 +13,8 @@ pub struct Node<T: Ord> {
     pub left: Option<Box<Node<T>>>,
     pub right: Option<Box<Node<T>>>,
     pub size: usize,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -28,6 +30,8 @@ impl<T: Ord> Node<T> {
             left: None,
             right: None,
             size: 1,
+            x: 0.0,
+            y: 0.0,
         }
     }
 
@@ -47,6 +51,7 @@ impl<T: Ord> RBTree<T> {
             root.color = Color::Black;
         }
         self.update_sizes();
+        self.update_positions();
     }
 
     pub fn clear_tree(&mut self) {
@@ -160,5 +165,26 @@ impl<T: Ord> RBTree<T> {
         *black_height = left_black_height + if node.color == Color::Black { 1 } else { 0 };
 
         true
+    }
+
+    pub fn update_positions(&mut self) {
+        fn update_positions_recursive<T: Ord>(node: &mut Box<Node<T>>, x: f32, y: f32) {
+            let v_gap = 30.0;
+            let h_gap = 4.0 * (node.size as f32);
+
+            node.x = x;
+            node.y = y;
+
+            if let Some(left) = &mut node.left {
+                update_positions_recursive(left, x - h_gap, y + v_gap);
+            }
+            if let Some(right) = &mut node.right {
+                update_positions_recursive(right, x + h_gap, y + v_gap);
+            }
+        }
+
+        if let Some(root) = &mut self.root {
+            update_positions_recursive(root, 100.0, 20.0);
+        }
     }
 }

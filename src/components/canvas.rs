@@ -36,17 +36,20 @@ pub fn Canvas() -> Element {
 
                 if let Some(root) = &(*RED_BLACK_TREE.read()).root {
                     {console::log_1(&format!("{:?}", root).into())}
-                    {render_node(root, 100.0, 20.0)}
+                    {render_node(root)}
                 }
             }
         }
     }
 }
 
-fn render_node(node: &Box<Node<i32>>, x: f32, y: f32) -> Element {
+fn render_node(node: &Box<Node<i32>>) -> Element {
     let v_gap = 30.0;
     let node_val = node.value;
     let size = node.size;
+
+    let x = node.x;
+    let y = node.y;
 
     let h_gap = 4.0 * (size as f32);
 
@@ -78,7 +81,7 @@ fn render_node(node: &Box<Node<i32>>, x: f32, y: f32) -> Element {
                     stroke_width: "0.5",
                     marker_end: "url(#arrowhead)",
                 }
-                {render_node(left, x - h_gap, y + v_gap)}
+                {render_node(left)}
             }
 
             if let Some(ref right) = &node.right {
@@ -91,7 +94,7 @@ fn render_node(node: &Box<Node<i32>>, x: f32, y: f32) -> Element {
                     stroke_width: "0.5",
                     marker_end: "url(#arrowhead)",
                 }
-                {render_node(right, x + h_gap, y + v_gap)}
+                {render_node(right)}
             }
         }
     }
