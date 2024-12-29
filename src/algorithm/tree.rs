@@ -1,194 +1,3 @@
-// use std::cell::RefCell;
-// use std::rc::Rc;
-
-// #[derive(Clone, Copy, PartialEq, Debug)]
-// pub enum Color {
-//     Red,
-//     Black,
-// }
-
-// #[derive(Debug)]
-// pub struct Node {
-//     pub data: i32,
-//     pub color: Color,
-//     pub left: Option<Rc<RefCell<Node>>>,
-//     pub right: Option<Rc<RefCell<Node>>>,
-//     pub parent: Option<Rc<RefCell<Node>>>,
-// }
-
-// impl Node {
-//     fn new(data: i32) -> Node {
-//         Node {
-//             data,
-//             color: Color::Red,
-//             left: None,
-//             right: None,
-//             parent: None,
-//         }
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct RBTree {
-//     pub root: Option<Rc<RefCell<Node>>>,
-// }
-
-// impl RBTree {
-//     pub fn new() -> Self {
-//         RBTree { root: None }
-//     }
-
-//     fn rotate_left(&mut self, node: Rc<RefCell<Node>>) {
-//         let right_child = node.borrow().right.clone().unwrap();
-
-//         node.borrow_mut().right = right_child.borrow().left.clone();
-//         if let Some(left) = right_child.borrow().left.clone() {
-//             left.borrow_mut().parent = Some(node.clone());
-//         }
-
-//         right_child.borrow_mut().parent = node.borrow().parent.clone();
-
-//         match node.borrow().parent.clone() {
-//             None => self.root = Some(right_child.clone()),
-//             Some(parent) => {
-//                 let is_left = parent
-//                     .borrow()
-//                     .left
-//                     .as_ref()
-//                     .map_or(false, |left| Rc::ptr_eq(&node, left));
-//                 if is_left {
-//                     parent.borrow_mut().left = Some(right_child.clone());
-//                 } else {
-//                     parent.borrow_mut().right = Some(right_child.clone());
-//                 }
-//             }
-//         }
-
-//         right_child.borrow_mut().left = Some(node.clone());
-//         node.borrow_mut().parent = Some(right_child);
-//     }
-
-//     fn rotate_right(&mut self, node: Rc<RefCell<Node>>) {
-//         let left_child = node.borrow().left.clone().unwrap();
-
-//         node.borrow_mut().left = left_child.borrow().right.clone();
-//         if let Some(right) = left_child.borrow().right.clone() {
-//             right.borrow_mut().parent = Some(node.clone());
-//         }
-
-//         left_child.borrow_mut().parent = node.borrow().parent.clone();
-
-//         match node.borrow().parent.clone() {
-//             None => self.root = Some(left_child.clone()),
-//             Some(parent) => {
-//                 let is_left = parent
-//                     .borrow()
-//                     .left
-//                     .as_ref()
-//                     .map_or(false, |left| Rc::ptr_eq(&node, left));
-//                 if is_left {
-//                     parent.borrow_mut().left = Some(left_child.clone());
-//                 } else {
-//                     parent.borrow_mut().right = Some(left_child.clone());
-//                 }
-//             }
-//         }
-
-//         left_child.borrow_mut().right = Some(node.clone());
-//         node.borrow_mut().parent = Some(left_child);
-//     }
-
-//     fn fix_insertion(&mut self, mut node: Rc<RefCell<Node>>) {
-//         while node.borrow().parent.is_some()
-//             && node.borrow().parent.as_ref().unwrap().borrow().color == Color::Red
-//         {
-//             let parent = node.borrow().parent.clone().unwrap();
-//             let grandparent = parent.borrow().parent.clone().unwrap();
-
-//             if Rc::ptr_eq(&parent, grandparent.borrow().left.as_ref().unwrap()) {
-//                 let uncle = grandparent.borrow().right.clone();
-
-//                 if let Some(u) = uncle.as_ref() {
-//                     if u.borrow().color == Color::Red {
-//                         parent.borrow_mut().color = Color::Black;
-//                         u.borrow_mut().color = Color::Black;
-//                         grandparent.borrow_mut().color = Color::Red;
-//                         node = grandparent;
-//                         continue;
-//                     }
-//                 }
-
-//                 if !Rc::ptr_eq(&node, parent.borrow().left.as_ref().unwrap()) {
-//                     node = parent.clone();
-//                     self.rotate_left(node.clone());
-//                 }
-
-//                 let parent = node.borrow().parent.clone().unwrap();
-//                 let grandparent = parent.borrow().parent.clone().unwrap();
-//                 parent.borrow_mut().color = Color::Black;
-//                 grandparent.borrow_mut().color = Color::Red;
-//                 self.rotate_right(grandparent);
-//             } else {
-//                 let uncle = grandparent.borrow().left.clone();
-
-//                 if let Some(u) = uncle.as_ref() {
-//                     if u.borrow().color == Color::Red {
-//                         parent.borrow_mut().color = Color::Black;
-//                         u.borrow_mut().color = Color::Black;
-//                         grandparent.borrow_mut().color = Color::Red;
-//                         node = grandparent;
-//                         continue;
-//                     }
-//                 }
-
-//                 if !Rc::ptr_eq(&node, parent.borrow().right.as_ref().unwrap()) {
-//                     node = parent.clone();
-//                     self.rotate_right(node.clone());
-//                 }
-
-//                 let parent = node.borrow().parent.clone().unwrap();
-//                 let grandparent = parent.borrow().parent.clone().unwrap();
-//                 parent.borrow_mut().color = Color::Black;
-//                 grandparent.borrow_mut().color = Color::Red;
-//                 self.rotate_left(grandparent);
-//             }
-//         }
-
-//         self.root.as_ref().unwrap().borrow_mut().color = Color::Black;
-//     }
-
-//     pub fn insert(&mut self, data: i32) {
-//         let new_node = Rc::new(RefCell::new(Node::new(data)));
-
-//         let mut current = self.root.clone();
-//         let mut parent = None;
-
-//         while let Some(node) = current.clone() {
-//             parent = current.clone();
-//             if data < node.borrow().data {
-//                 current = node.borrow().left.clone();
-//             } else {
-//                 current = node.borrow().right.clone();
-//             }
-//         }
-
-//         new_node.borrow_mut().parent = parent.clone();
-
-//         match parent {
-//             None => self.root = Some(new_node.clone()),
-//             Some(p) => {
-//                 if data < p.borrow().data {
-//                     p.borrow_mut().left = Some(new_node.clone());
-//                 } else {
-//                     p.borrow_mut().right = Some(new_node.clone());
-//                 }
-//             }
-//         }
-
-//         self.fix_insertion(new_node);
-//     }
-// }
-
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -215,11 +24,15 @@ impl<T: Ord> Node<T> {
     fn new(value: T) -> Self {
         Node {
             value,
-            color: Color::Red, // New nodes are always red
+            color: Color::Red,
             left: None,
             right: None,
             size: 1,
         }
+    }
+
+    fn is_red(node: &Option<Box<Node<T>>>) -> bool {
+        node.as_ref().map_or(false, |n| n.color == Color::Red)
     }
 }
 
@@ -229,21 +42,10 @@ impl<T: Ord> RBTree<T> {
     }
 
     pub fn insert(&mut self, value: T) {
-        match self.root.take() {
-            None => {
-                // First node is always black
-                let mut new_node = Node::new(value);
-                new_node.color = Color::Black;
-                self.root = Some(Box::new(new_node));
-            }
-            Some(root) => {
-                self.root = Some(self.insert_recursive(root, value));
-                if let Some(root) = &mut self.root {
-                    root.color = Color::Black; // Root must always be black
-                }
-            }
+        self.root = Self::insert_recursive(self.root.take(), value);
+        if let Some(root) = &mut self.root {
+            root.color = Color::Black;
         }
-
         self.update_sizes();
     }
 
@@ -265,95 +67,98 @@ impl<T: Ord> RBTree<T> {
         update_recursive(&mut self.root);
     }
 
-    fn insert_recursive(&mut self, mut node: Box<Node<T>>, value: T) -> Box<Node<T>> {
-        match value.cmp(&node.value) {
+    fn insert_recursive(node: Option<Box<Node<T>>>, value: T) -> Option<Box<Node<T>>> {
+        if node.is_none() {
+            return Some(Box::new(Node::new(value)));
+        }
+
+        let mut current = node.unwrap();
+        match value.cmp(&current.value) {
             Ordering::Less => {
-                if let Some(left) = node.left.take() {
-                    node.left = Some(self.insert_recursive(left, value));
-                } else {
-                    node.left = Some(Box::new(Node::new(value)));
-                }
-                self.balance_left(node)
+                current.left = Self::insert_recursive(current.left.take(), value);
             }
             Ordering::Greater => {
-                if let Some(right) = node.right.take() {
-                    node.right = Some(self.insert_recursive(right, value));
-                } else {
-                    node.right = Some(Box::new(Node::new(value)));
-                }
-                self.balance_right(node)
+                current.right = Self::insert_recursive(current.right.take(), value);
             }
-            Ordering::Equal => node, // Do nothing for duplicate values
+            Ordering::Equal => return Some(current),
+        }
+
+        if Node::is_red(&current.right) && !Node::is_red(&current.left) {
+            current = Self::rotate_left(current);
+        }
+        if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
+            current = Self::rotate_right(current);
+        }
+        if Node::is_red(&current.left) && Node::is_red(&current.right) {
+            Self::flip_colors(&mut current);
+        }
+
+        Some(current)
+    }
+
+    fn rotate_left(mut node: Box<Node<T>>) -> Box<Node<T>> {
+        let mut right = node.right.unwrap();
+        node.right = right.left.take();
+        right.left = Some(node);
+        right.color = right.left.as_ref().unwrap().color;
+        right.left.as_mut().unwrap().color = Color::Red;
+        right
+    }
+
+    fn rotate_right(mut node: Box<Node<T>>) -> Box<Node<T>> {
+        let mut left = node.left.unwrap();
+        node.left = left.right.take();
+        left.right = Some(node);
+        left.color = left.right.as_ref().unwrap().color;
+        left.right.as_mut().unwrap().color = Color::Red;
+        left
+    }
+
+    fn flip_colors(node: &mut Box<Node<T>>) {
+        node.color = Color::Red;
+        if let Some(left) = &mut node.left {
+            left.color = Color::Black;
+        }
+        if let Some(right) = &mut node.right {
+            right.color = Color::Black;
         }
     }
 
-    fn balance_left(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        // Handle red-red violation on the left
-        if let Some(left) = &node.left {
-            if left.color == Color::Red {
-                // Left child is red
-                if let Some(left_left) = &left.left {
-                    if left_left.color == Color::Red {
-                        // Left-left case
-                        return self.rotate_right(node);
-                    }
-                }
-                if let Some(left_right) = &left.right {
-                    if left_right.color == Color::Red {
-                        // Left-right case
-                        node.left = Some(self.rotate_left(node.left.unwrap()));
-                        return self.rotate_right(node);
-                    }
-                }
+    pub fn is_valid(&self) -> bool {
+        let mut black_height = 0;
+        self.is_valid_recursive(&self.root, &mut black_height)
+    }
+
+    fn is_valid_recursive(&self, node: &Option<Box<Node<T>>>, black_height: &mut i32) -> bool {
+        if node.is_none() {
+            *black_height = 0;
+            return true;
+        }
+
+        let node = node.as_ref().unwrap();
+
+        if node.color == Color::Red {
+            if Node::is_red(&node.left) || Node::is_red(&node.right) {
+                return false;
             }
         }
-        node
-    }
 
-    fn balance_right(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        // Handle red-red violation on the right
-        if let Some(right) = &node.right {
-            if right.color == Color::Red {
-                // Right child is red
-                if let Some(right_right) = &right.right {
-                    if right_right.color == Color::Red {
-                        // Right-right case
-                        return self.rotate_left(node);
-                    }
-                }
-                if let Some(right_left) = &right.left {
-                    if right_left.color == Color::Red {
-                        // Right-left case
-                        node.right = Some(self.rotate_right(node.right.unwrap()));
-                        return self.rotate_left(node);
-                    }
-                }
-            }
-        }
-        node
-    }
+        let mut left_black_height = 0;
+        let mut right_black_height = 0;
 
-    fn rotate_left(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        if let Some(mut right) = node.right.take() {
-            node.right = right.left.take();
-            right.left = Some(node);
-            right.color = right.left.as_ref().unwrap().color;
-            right.left.as_mut().unwrap().color = Color::Red;
-            right
-        } else {
-            node
+        if !self.is_valid_recursive(&node.left, &mut left_black_height) {
+            return false;
         }
-    }
+        if !self.is_valid_recursive(&node.right, &mut right_black_height) {
+            return false;
+        }
 
-    fn rotate_right(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        if let Some(mut left) = node.left.take() {
-            node.left = left.right.take();
-            left.right = Some(node);
-            left.color = left.right.as_ref().unwrap().color;
-            left.right.as_mut().unwrap().color = Color::Red;
-            left
-        } else {
-            node
+        if left_black_height != right_black_height {
+            return false;
         }
+
+        *black_height = left_black_height + if node.color == Color::Black { 1 } else { 0 };
+
+        true
     }
 }
