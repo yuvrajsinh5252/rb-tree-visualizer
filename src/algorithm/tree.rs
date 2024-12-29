@@ -1,4 +1,7 @@
+use crate::store::STATUS;
 use std::cmp::Ordering;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{console, js_sys, window};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Color {
@@ -40,12 +43,12 @@ impl<T: Ord> Node<T> {
     }
 }
 
-impl<T: Ord> RBTree<T> {
+impl<T: Ord + std::fmt::Display> RBTree<T> {
     pub fn new() -> Self {
         RBTree { root: None }
     }
 
-    pub fn insert(&mut self, value: T) {
+    pub async fn insert(&mut self, value: T) {
         self.root = Self::insert_recursive(self.root.take(), value);
         if let Some(root) = &mut self.root {
             root.color = Color::Black;
@@ -185,6 +188,21 @@ impl<T: Ord> RBTree<T> {
 
         if let Some(root) = &mut self.root {
             update_positions_recursive(root, 100.0, 20.0);
+        }
+    }
+
+    pub async fn update_status(&self, status: &str) {
+        {
+            let promise = js_sys::Promise::new(&mut |resolve, _| {
+                window()
+                    .unwrap()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        &resolve, 1000, // 1000ms delay
+                    )
+                    .unwrap();
+            });
+            JsFuture::from(promise).await.unwrap();
+            *STATUS.write() = status.to_string();
         }
     }
 }

@@ -35,7 +35,6 @@ pub fn Canvas() -> Element {
                 }
 
                 if let Some(root) = &(*RED_BLACK_TREE.read()).root {
-                    {console::log_1(&format!("{:?}", root).into())}
                     {render_node(root)}
                 }
             }

@@ -36,7 +36,9 @@ pub fn Controls() -> Element {
 
               match selected_tree.as_str() {
                 "Red Black Tree" => {
-                  RED_BLACK_TREE.write().insert(*addNode.read());
+                  spawn(async move {
+                    Box::pin(RED_BLACK_TREE.write().insert(*addNode.read())).await;
+                });
                 }
                 "Binomial Heap" => {
                   // Call Binomial Heap insertion function
