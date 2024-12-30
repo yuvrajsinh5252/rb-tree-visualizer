@@ -9,7 +9,7 @@ pub fn Navbar() -> Element {
             class: "text-white flex justify-center items-center gap-2",
             img {
             class: "h-8 w-8",
-            src: "/logo.png",
+            src: "assets/favicon.ico",
             alt: "logo"
             }
             span {

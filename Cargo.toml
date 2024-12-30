@@ -17,8 +17,6 @@ web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
 
-[profile]
-
 [profile.wasm-dev]
 inherits = "dev"
 opt-level = 1

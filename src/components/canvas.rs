@@ -1,16 +1,21 @@
 use crate::algorithm::tree::Node;
 use crate::components::canvas_control::CanvasControls;
 use crate::store::RED_BLACK_TREE;
-use crate::store::STATUS;
 use crate::store::SVG_VIEW_BOX;
 use dioxus::prelude::*;
 
 #[component]
 pub fn Canvas() -> Element {
+    let mut red_black_tree = use_signal(|| RED_BLACK_TREE.read().clone());
+
+    use_effect(move || {
+        red_black_tree.set(RED_BLACK_TREE.read().clone());
+    });
+
     rsx! {
         div {
             class: "flex flex-col border-2 items-center relative justify-center w-3/4 rounded-lg",
-            CanvasControls { status: "{STATUS.read()}" }
+            CanvasControls {}
             svg {
                 class: "overflow-scroll",
                 width: "100%",
@@ -26,6 +31,7 @@ pub fn Canvas() -> Element {
                         marker_width: "30",
                         marker_height: "18",
                         orient: "auto",
+                        class: "transition-all duration-500 ease-in-out transform-gpu origin-center",
                         path {
                             d: "M0,0 L0,3 L3,1.5 z",
                             fill: "black"
@@ -33,15 +39,15 @@ pub fn Canvas() -> Element {
                     }
                 }
 
-                if let Some(root) = &(*RED_BLACK_TREE.read()).root {
-                    {render_node(root)}
+                if let Some(ref root) = red_black_tree.read().root {
+                    {render_node(root.clone())}
                 }
             }
         }
     }
 }
 
-fn render_node(node: &Box<Node<i32>>) -> Element {
+fn render_node(node: Box<Node<i32>>) -> Element {
     let v_gap = 30.0;
     let node_val = node.value;
     let size = node.size;
@@ -59,6 +65,7 @@ fn render_node(node: &Box<Node<i32>>) -> Element {
                 r: "8",
                 stroke: "black",
                 fill: if format!("{:?}", node.color ) == "Red" { "indianred" } else { "gray" },
+                class: "transition-all duration-500 ease-in-out transform-gpu origin-center"
             }
             text {
                 x: x.to_string(),
@@ -79,7 +86,7 @@ fn render_node(node: &Box<Node<i32>>) -> Element {
                     stroke_width: "0.5",
                     marker_end: "url(#arrowhead)",
                 }
-                {render_node(left)}
+                {render_node(left.clone())}
             }
 
             if let Some(ref right) = &node.right {
@@ -92,7 +99,7 @@ fn render_node(node: &Box<Node<i32>>) -> Element {
                     stroke_width: "0.5",
                     marker_end: "url(#arrowhead)",
                 }
-                {render_node(right)}
+                {render_node(right.clone())}
             }
         }
     }

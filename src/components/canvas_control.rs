@@ -1,15 +1,16 @@
 use crate::components::ui::button::Button;
-use crate::store::SELECTED_TREE;
-use crate::store::SVG_VIEW_BOX;
+use crate::store::{SELECTED_TREE, STATUS, SVG_VIEW_BOX};
 use dioxus::prelude::*;
 
-#[derive(PartialEq, Props, Clone)]
-pub struct CanvasControlsProps {
-    status: String,
-}
-
 #[component]
-pub fn CanvasControls(props: CanvasControlsProps) -> Element {
+pub fn CanvasControls() -> Element {
+    let mut state = use_signal(|| String::from("initial state"));
+
+    use_effect(move || {
+        let status = STATUS.read().to_string();
+        state.set(status);
+    });
+
     rsx! {
         div {
           class: "absolute top-0 right-0 p-1 pr-2",
@@ -22,7 +23,7 @@ pub fn CanvasControls(props: CanvasControlsProps) -> Element {
             class: "absolute top-0 left-0 p-1 pl-2 flex gap-2",
             h1 {
                 class: "p-1 border-1 text-sm font-semibold",
-                "{props.status}"
+                "Status: {state}"
             }
         }
         div {

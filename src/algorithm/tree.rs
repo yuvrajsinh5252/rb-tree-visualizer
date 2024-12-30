@@ -1,4 +1,4 @@
-use crate::store::STATUS;
+use crate::store::{RED_BLACK_TREE, STATUS};
 use std::cmp::Ordering;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{js_sys, window};
@@ -21,7 +21,7 @@ pub struct Node<T: Ord> {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct RBTree<T: Ord> {
+pub struct RBTree<T: Ord + Clone> {
     pub root: Option<Box<Node<T>>>,
 }
 
@@ -43,22 +43,34 @@ impl<T: Ord> Node<T> {
     }
 }
 
-impl<T: Ord + std::fmt::Display> RBTree<T> {
+// Generic implementation
+impl<T: Ord + std::fmt::Display + Clone> RBTree<T> {
     pub fn new() -> Self {
         RBTree { root: None }
     }
 
     pub async fn insert(&mut self, value: T) {
-        self.update_status("Inserting node...", 1000).await;
+        self.update_status(&format!("Starting insertion of value: {}", value), 1000)
+            .await;
 
-        self.root = Self::insert_recursive(self.root.take(), value);
+        if self.root.is_none() {
+            self.root = Some(Box::new(Node::new(value)));
+            self.update_status("Created new root node", 1000).await;
+        } else {
+            let root = self.root.take().unwrap();
+            self.root = Box::pin(self.insert_recursive(Some(root), value)).await;
+        }
+
         if let Some(root) = &mut self.root {
             root.color = Color::Black;
+            self.update_status("Root recolored to black for balance", 1000)
+                .await;
         }
+
         self.update_sizes();
         self.update_positions();
-
-        self.update_status("IDLE", 0).await;
+        self.update_status("Tree rebalanced and repositioned", 1000)
+            .await;
     }
 
     pub fn clear_tree(&mut self) {
@@ -79,36 +91,64 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
         update_recursive(&mut self.root);
     }
 
-    fn insert_recursive(node: Option<Box<Node<T>>>, value: T) -> Option<Box<Node<T>>> {
+    async fn insert_recursive(
+        &mut self,
+        node: Option<Box<Node<T>>>,
+        value: T,
+    ) -> Option<Box<Node<T>>> {
         if node.is_none() {
+            self.update_status(&format!("Creating new node with value: {}", value), 500)
+                .await;
             return Some(Box::new(Node::new(value)));
         }
 
         let mut current = node.unwrap();
         match value.cmp(&current.value) {
             Ordering::Less => {
-                current.left = Self::insert_recursive(current.left.take(), value);
+                self.update_status(
+                    &format!("{} is less than {}, moving left", value, current.value),
+                    500,
+                )
+                .await;
+                current.left = Box::pin(self.insert_recursive(current.left.take(), value)).await;
             }
             Ordering::Greater => {
-                current.right = Self::insert_recursive(current.right.take(), value);
+                self.update_status(
+                    &format!("{} is greater than {}, moving right", value, current.value),
+                    500,
+                )
+                .await;
+                current.right = Box::pin(self.insert_recursive(current.right.take(), value)).await;
             }
-            Ordering::Equal => return Some(current),
+            Ordering::Equal => {
+                self.update_status(&format!("Value {} already exists", value), 500)
+                    .await;
+                return Some(current);
+            }
         }
 
         if Node::is_red(&current.right) && !Node::is_red(&current.left) {
-            current = Self::rotate_left(current);
+            self.update_status("Performing left rotation for balancing", 1000)
+                .await;
+            current = self.rotate_left(current).await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
-            current = Self::rotate_right(current);
+            self.update_status("Performing right rotation for balancing", 1000)
+                .await;
+            current = self.rotate_right(current).await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.right) {
-            Self::flip_colors(&mut current);
+            self.update_status("Flipping colors to maintain black height", 1000)
+                .await;
+            self.flip_colors(&mut current).await;
         }
 
         Some(current)
     }
 
-    fn rotate_left(mut node: Box<Node<T>>) -> Box<Node<T>> {
+    async fn rotate_left(&self, mut node: Box<Node<T>>) -> Box<Node<T>> {
+        self.update_status(&format!("Rotating left at node {}", node.value), 500)
+            .await;
         let mut right = node.right.unwrap();
         node.right = right.left.take();
         right.left = Some(node);
@@ -117,7 +157,9 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
         right
     }
 
-    fn rotate_right(mut node: Box<Node<T>>) -> Box<Node<T>> {
+    async fn rotate_right(&self, mut node: Box<Node<T>>) -> Box<Node<T>> {
+        self.update_status(&format!("Rotating right at node {}", node.value), 500)
+            .await;
         let mut left = node.left.unwrap();
         node.left = left.right.take();
         left.right = Some(node);
@@ -126,7 +168,9 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
         left
     }
 
-    fn flip_colors(node: &mut Box<Node<T>>) {
+    async fn flip_colors(&self, node: &mut Box<Node<T>>) {
+        self.update_status(&format!("Flipping colors at node {}", node.value), 500)
+            .await;
         node.color = Color::Red;
         if let Some(left) = &mut node.left {
             left.color = Color::Black;
@@ -169,5 +213,20 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
             });
             JsFuture::from(promise).await.unwrap();
         }
+    }
+}
+
+impl RBTree<i32> {
+    pub async fn update_tree_state(&mut self) {
+        self.update_status("Updating tree state...", 500).await;
+
+        *RED_BLACK_TREE.write() = self.clone();
+
+        let size = match &self.root {
+            Some(root) => root.size,
+            None => 0,
+        };
+        self.update_status(&format!("Tree updated. Current size: {}", size), 500)
+            .await;
     }
 }
