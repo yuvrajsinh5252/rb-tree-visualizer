@@ -1,10 +1,23 @@
-# Development
+# Red Black Tree Visualizer
 
-Your new bare-bones project includes minimal organization with a single `main.rs` file and a few assets.
+A visualizer for red black trees built with dioxus.
+
+## Preview
+
+![preview](./assets/preview.png)
+
+## Future Improvements
+
+- Add animation for node insertion and deletion
+- Include step-by-step updatation of nodes during insertion and deletion
+- Support for different tree layouts
+- Export tree as image or JSON
+
+## Getting Started
 
 ### Tailwind
 
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
+1. Install bun: Bun: https://bun.sh/docs/installation
 2. Install the Tailwind CSS CLI: https://tailwindcss.com/docs/installation
 3. Run the following command in the root of the project to start the Tailwind CSS compiler:
 

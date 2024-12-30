@@ -131,13 +131,13 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
             self.update_status("Performing left rotation for balancing", 1000)
                 .await;
             current = self.rotate_left(current).await;
-            self.update_tree_state().await;
+            // self.update_tree_state().await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
             self.update_status("Performing right rotation for balancing", 1000)
                 .await;
             current = self.rotate_right(current).await;
-            self.update_tree_state().await;
+            // self.update_tree_state().await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.right) {
             self.update_status("Flipping colors to maintain black height", 1000)
