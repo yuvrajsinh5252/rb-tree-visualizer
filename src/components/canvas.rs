@@ -4,7 +4,6 @@ use crate::store::RED_BLACK_TREE;
 use crate::store::STATUS;
 use crate::store::SVG_VIEW_BOX;
 use dioxus::prelude::*;
-use web_sys::console;
 
 #[component]
 pub fn Canvas() -> Element {

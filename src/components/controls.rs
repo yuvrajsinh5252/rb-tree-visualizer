@@ -4,13 +4,13 @@ use crate::store::CONTROLS;
 use crate::store::RED_BLACK_TREE;
 use crate::store::SELECTED_TREE;
 use crate::store::TREE_STATES;
-
 use dioxus::prelude::*;
 
 #[component]
 pub fn Controls() -> Element {
     let mut addNode: Signal<i32> = use_signal(|| 0);
     let mut deleteNode: Signal<i32> = use_signal(|| 0);
+    let mut disabled: Signal<bool> = use_signal(|| false);
 
     rsx! {
       div {
@@ -33,12 +33,15 @@ pub fn Controls() -> Element {
             }),
             onclick: move |_| {
               let selected_tree = SELECTED_TREE.read().clone();
+              let node_val = *addNode.read();
 
               match selected_tree.as_str() {
                 "Red Black Tree" => {
+                  *disabled.write() = true;
                   spawn(async move {
-                    Box::pin(RED_BLACK_TREE.write().insert(*addNode.read())).await;
-                });
+                    RED_BLACK_TREE.write().insert(node_val).await;
+                    *disabled.write() = false;
+                  });
                 }
                 "Binomial Heap" => {
                   // Call Binomial Heap insertion function
@@ -50,7 +53,7 @@ pub fn Controls() -> Element {
               CONTROLS.write().ind.set(TREE_STATES.read().len() as i32 - 1);
               addNode.set(0);
             },
-            disabled: *CONTROLS.read().ind.read() != TREE_STATES.read().len() as i32 - 1
+            disabled: *CONTROLS.read().ind.read() != TREE_STATES.read().len() as i32 - 1 || *disabled.read()
          }
         }
         div {

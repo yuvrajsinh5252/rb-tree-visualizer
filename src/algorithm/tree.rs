@@ -1,7 +1,7 @@
 use crate::store::STATUS;
 use std::cmp::Ordering;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{console, js_sys, window};
+use web_sys::{js_sys, window};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Color {
@@ -49,12 +49,16 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
     }
 
     pub async fn insert(&mut self, value: T) {
+        self.update_status("Inserting node...", 1000).await;
+
         self.root = Self::insert_recursive(self.root.take(), value);
         if let Some(root) = &mut self.root {
             root.color = Color::Black;
         }
         self.update_sizes();
         self.update_positions();
+
+        self.update_status("IDLE", 0).await;
     }
 
     pub fn clear_tree(&mut self) {
@@ -132,44 +136,6 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
         }
     }
 
-    pub fn is_valid(&self) -> bool {
-        let mut black_height = 0;
-        self.is_valid_recursive(&self.root, &mut black_height)
-    }
-
-    fn is_valid_recursive(&self, node: &Option<Box<Node<T>>>, black_height: &mut i32) -> bool {
-        if node.is_none() {
-            *black_height = 0;
-            return true;
-        }
-
-        let node = node.as_ref().unwrap();
-
-        if node.color == Color::Red {
-            if Node::is_red(&node.left) || Node::is_red(&node.right) {
-                return false;
-            }
-        }
-
-        let mut left_black_height = 0;
-        let mut right_black_height = 0;
-
-        if !self.is_valid_recursive(&node.left, &mut left_black_height) {
-            return false;
-        }
-        if !self.is_valid_recursive(&node.right, &mut right_black_height) {
-            return false;
-        }
-
-        if left_black_height != right_black_height {
-            return false;
-        }
-
-        *black_height = left_black_height + if node.color == Color::Black { 1 } else { 0 };
-
-        true
-    }
-
     pub fn update_positions(&mut self) {
         fn update_positions_recursive<T: Ord>(node: &mut Box<Node<T>>, x: f32, y: f32) {
             let v_gap = 30.0;
@@ -191,18 +157,17 @@ impl<T: Ord + std::fmt::Display> RBTree<T> {
         }
     }
 
-    pub async fn update_status(&self, status: &str) {
-        {
+    async fn update_status(&self, status: &str, delay: i32) {
+        *STATUS.write() = status.to_string();
+
+        if delay > 0 {
             let promise = js_sys::Promise::new(&mut |resolve, _| {
                 window()
                     .unwrap()
-                    .set_timeout_with_callback_and_timeout_and_arguments_0(
-                        &resolve, 1000, // 1000ms delay
-                    )
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, delay)
                     .unwrap();
             });
             JsFuture::from(promise).await.unwrap();
-            *STATUS.write() = status.to_string();
         }
     }
 }
