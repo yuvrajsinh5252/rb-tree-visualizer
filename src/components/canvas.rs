@@ -1,4 +1,5 @@
 use crate::algorithm::tree::Node;
+use crate::algorithm::tree::RBTree;
 use crate::components::canvas_control::CanvasControls;
 use crate::store::RED_BLACK_TREE;
 use crate::store::SVG_VIEW_BOX;
@@ -6,7 +7,7 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn Canvas() -> Element {
-    let mut red_black_tree = use_signal(|| RED_BLACK_TREE.read().clone());
+    let mut red_black_tree = use_signal(|| RBTree::new());
 
     use_effect(move || {
         red_black_tree.set(RED_BLACK_TREE.read().clone());

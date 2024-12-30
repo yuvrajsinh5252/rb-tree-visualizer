@@ -44,7 +44,7 @@ impl<T: Ord> Node<T> {
 }
 
 // Generic implementation
-impl<T: Ord + std::fmt::Display + Clone> RBTree<T> {
+impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
     pub fn new() -> Self {
         RBTree { root: None }
     }
@@ -131,11 +131,13 @@ impl<T: Ord + std::fmt::Display + Clone> RBTree<T> {
             self.update_status("Performing left rotation for balancing", 1000)
                 .await;
             current = self.rotate_left(current).await;
+            self.update_tree_state().await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
             self.update_status("Performing right rotation for balancing", 1000)
                 .await;
             current = self.rotate_right(current).await;
+            self.update_tree_state().await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.right) {
             self.update_status("Flipping colors to maintain black height", 1000)
@@ -201,9 +203,38 @@ impl<T: Ord + std::fmt::Display + Clone> RBTree<T> {
         }
     }
 
+    pub async fn update_tree_state(&mut self)
+    where
+        T: Clone + Into<i32>,
+    {
+        let converted_tree: RBTree<i32> = RBTree {
+            root: self
+                .root
+                .as_ref()
+                .map(|node| Self::convert_node_to_i32(node)),
+        };
+        *RED_BLACK_TREE.write() = converted_tree;
+        self.insert_delay(200).await;
+    }
+
+    fn convert_node_to_i32(node: &Box<Node<T>>) -> Box<Node<i32>> {
+        Box::new(Node {
+            value: node.value.clone().into(),
+            color: node.color,
+            left: node.left.as_ref().map(Self::convert_node_to_i32),
+            right: node.right.as_ref().map(Self::convert_node_to_i32),
+            size: node.size,
+            x: node.x,
+            y: node.y,
+        })
+    }
+
     async fn update_status(&self, status: &str, delay: i32) {
         *STATUS.write() = status.to_string();
+        self.insert_delay(delay).await;
+    }
 
+    async fn insert_delay(&self, delay: i32) {
         if delay > 0 {
             let promise = js_sys::Promise::new(&mut |resolve, _| {
                 window()
@@ -213,20 +244,5 @@ impl<T: Ord + std::fmt::Display + Clone> RBTree<T> {
             });
             JsFuture::from(promise).await.unwrap();
         }
-    }
-}
-
-impl RBTree<i32> {
-    pub async fn update_tree_state(&mut self) {
-        self.update_status("Updating tree state...", 500).await;
-
-        *RED_BLACK_TREE.write() = self.clone();
-
-        let size = match &self.root {
-            Some(root) => root.size,
-            None => 0,
-        };
-        self.update_status(&format!("Tree updated. Current size: {}", size), 500)
-            .await;
     }
 }
