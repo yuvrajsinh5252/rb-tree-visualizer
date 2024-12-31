@@ -92,6 +92,8 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         if node.is_none() {
             self.update_tree_state(true, false, "Creating new node", 1000)
                 .await;
+            self.update_tree_state(true, true, &format!("New node value: {}", value), 1000)
+                .await;
             return Some(Box::new(Node::new(value)));
         }
 
@@ -100,7 +102,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
             Ordering::Less => {
                 self.update_tree_state(
                     true,
-                    true,
+                    false,
                     &format!("{} is less than {}, moving left", value, current.value),
                     1000,
                 )
@@ -110,7 +112,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
             Ordering::Greater => {
                 self.update_tree_state(
                     true,
-                    true,
+                    false,
                     &format!("{} is greater than {}, moving right", value, current.value),
                     1000,
                 )
@@ -120,7 +122,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
             Ordering::Equal => {
                 self.update_tree_state(
                     true,
-                    true,
+                    false,
                     &format!("Value {} already exists", value),
                     1000,
                 )
@@ -130,14 +132,24 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         }
 
         if Node::is_red(&current.right) && !Node::is_red(&current.left) {
-            self.update_tree_state(true, false, "Performing left rotation for balancing", 0)
-                .await;
             current = self.rotate_left(current).await;
+            self.update_tree_state(
+                true,
+                true,
+                &format!("Rotating left at node {}", current.value),
+                1000,
+            )
+            .await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
-            self.update_tree_state(true, false, "Performing right rotation for balancing", 0)
-                .await;
             current = self.rotate_right(current).await;
+            self.update_tree_state(
+                true,
+                true,
+                &format!("Rotating right at node {}", current.value),
+                1000,
+            )
+            .await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.right) {
             self.update_tree_state(true, false, "Flipping colors to maintain black height", 0)
@@ -149,37 +161,20 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
     }
 
     async fn rotate_left(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        let node_val = node.value.clone();
         let mut right = node.right.unwrap();
         node.right = right.left.take();
         right.left = Some(node);
         right.color = right.left.as_ref().unwrap().color;
         right.left.as_mut().unwrap().color = Color::Red;
-
-        self.update_tree_state(
-            true,
-            true,
-            &format!("Rotating left at node {}", node_val),
-            1000,
-        )
-        .await;
         right
     }
 
     async fn rotate_right(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        let node_val = node.value.clone();
         let mut left = node.left.unwrap();
         node.left = left.right.take();
         left.right = Some(node);
         left.color = left.right.as_ref().unwrap().color;
         left.right.as_mut().unwrap().color = Color::Red;
-        self.update_tree_state(
-            true,
-            true,
-            &format!("Rotating right at node {}", node_val),
-            1000,
-        )
-        .await;
         left
     }
 
@@ -210,10 +205,18 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
             node.y = y;
 
             if let Some(left) = &mut node.left {
-                update_positions_recursive(left, x - h_gap, y + v_gap);
+                if x == 0.0 && y == 0.0 {
+                    update_positions_recursive(left, 0.0, 0.0);
+                } else {
+                    update_positions_recursive(left, x - h_gap, y + v_gap);
+                }
             }
             if let Some(right) = &mut node.right {
-                update_positions_recursive(right, x + h_gap, y + v_gap);
+                if x == 0.0 && y == 0.0 {
+                    update_positions_recursive(right, 0.0, 0.0);
+                } else {
+                    update_positions_recursive(right, x + h_gap, y + v_gap);
+                }
             }
         }
 
