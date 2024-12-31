@@ -1,4 +1,4 @@
-use crate::store::{RED_BLACK_TREE, STATUS};
+use crate::store::{RBTREE, STATUS};
 use std::cmp::Ordering;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{js_sys, window};
@@ -43,19 +43,16 @@ impl<T: Ord> Node<T> {
     }
 }
 
-// Generic implementation
 impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
     pub fn new() -> Self {
         RBTree { root: None }
     }
 
     pub async fn insert(&mut self, value: T) {
-        self.update_status(&format!("Starting insertion of value: {}", value), 1000)
-            .await;
-
         if self.root.is_none() {
             self.root = Some(Box::new(Node::new(value)));
-            self.update_status("Created new root node", 1000).await;
+            self.update_tree_state(true, true, "Created new root node", 1000)
+                .await;
         } else {
             let root = self.root.take().unwrap();
             self.root = Box::pin(self.insert_recursive(Some(root), value)).await;
@@ -63,13 +60,9 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
 
         if let Some(root) = &mut self.root {
             root.color = Color::Black;
-            self.update_status("Root recolored to black for balance", 1000)
-                .await;
         }
 
-        self.update_sizes();
-        self.update_positions();
-        self.update_status("Tree rebalanced and repositioned", 1000)
+        self.update_tree_state(true, true, "Insertion complete, tree is now balanced", 1000)
             .await;
     }
 
@@ -97,7 +90,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         value: T,
     ) -> Option<Box<Node<T>>> {
         if node.is_none() {
-            self.update_status(&format!("Creating new node with value: {}", value), 500)
+            self.update_tree_state(true, false, "Creating new node", 1000)
                 .await;
             return Some(Box::new(Node::new(value)));
         }
@@ -105,42 +98,49 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         let mut current = node.unwrap();
         match value.cmp(&current.value) {
             Ordering::Less => {
-                self.update_status(
+                self.update_tree_state(
+                    true,
+                    true,
                     &format!("{} is less than {}, moving left", value, current.value),
-                    500,
+                    1000,
                 )
                 .await;
                 current.left = Box::pin(self.insert_recursive(current.left.take(), value)).await;
             }
             Ordering::Greater => {
-                self.update_status(
+                self.update_tree_state(
+                    true,
+                    true,
                     &format!("{} is greater than {}, moving right", value, current.value),
-                    500,
+                    1000,
                 )
                 .await;
                 current.right = Box::pin(self.insert_recursive(current.right.take(), value)).await;
             }
             Ordering::Equal => {
-                self.update_status(&format!("Value {} already exists", value), 500)
-                    .await;
+                self.update_tree_state(
+                    true,
+                    true,
+                    &format!("Value {} already exists", value),
+                    1000,
+                )
+                .await;
                 return Some(current);
             }
         }
 
         if Node::is_red(&current.right) && !Node::is_red(&current.left) {
-            self.update_status("Performing left rotation for balancing", 1000)
+            self.update_tree_state(true, false, "Performing left rotation for balancing", 0)
                 .await;
             current = self.rotate_left(current).await;
-            // self.update_tree_state().await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
-            self.update_status("Performing right rotation for balancing", 1000)
+            self.update_tree_state(true, false, "Performing right rotation for balancing", 0)
                 .await;
             current = self.rotate_right(current).await;
-            // self.update_tree_state().await;
         }
         if Node::is_red(&current.left) && Node::is_red(&current.right) {
-            self.update_status("Flipping colors to maintain black height", 1000)
+            self.update_tree_state(true, false, "Flipping colors to maintain black height", 0)
                 .await;
             self.flip_colors(&mut current).await;
         }
@@ -148,31 +148,43 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         Some(current)
     }
 
-    async fn rotate_left(&self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        self.update_status(&format!("Rotating left at node {}", node.value), 500)
-            .await;
+    async fn rotate_left(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
+        let node_val = node.value.clone();
         let mut right = node.right.unwrap();
         node.right = right.left.take();
         right.left = Some(node);
         right.color = right.left.as_ref().unwrap().color;
         right.left.as_mut().unwrap().color = Color::Red;
+
+        self.update_tree_state(
+            true,
+            true,
+            &format!("Rotating left at node {}", node_val),
+            1000,
+        )
+        .await;
         right
     }
 
-    async fn rotate_right(&self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        self.update_status(&format!("Rotating right at node {}", node.value), 500)
-            .await;
+    async fn rotate_right(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
+        let node_val = node.value.clone();
         let mut left = node.left.unwrap();
         node.left = left.right.take();
         left.right = Some(node);
         left.color = left.right.as_ref().unwrap().color;
         left.right.as_mut().unwrap().color = Color::Red;
+        self.update_tree_state(
+            true,
+            true,
+            &format!("Rotating right at node {}", node_val),
+            1000,
+        )
+        .await;
         left
     }
 
-    async fn flip_colors(&self, node: &mut Box<Node<T>>) {
-        self.update_status(&format!("Flipping colors at node {}", node.value), 500)
-            .await;
+    async fn flip_colors(&mut self, node: &mut Box<Node<T>>) {
+        let node_val = node.value.clone();
         node.color = Color::Red;
         if let Some(left) = &mut node.left {
             left.color = Color::Black;
@@ -180,6 +192,13 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         if let Some(right) = &mut node.right {
             right.color = Color::Black;
         }
+        self.update_tree_state(
+            true,
+            false,
+            &format!("Flipping colors at node {}", node_val),
+            1000,
+        )
+        .await;
     }
 
     pub fn update_positions(&mut self) {
@@ -203,7 +222,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         }
     }
 
-    pub async fn update_tree_state(&mut self)
+    pub async fn update_tree_state(&mut self, state: bool, pos: bool, status: &str, delay: i32)
     where
         T: Clone + Into<i32>,
     {
@@ -213,8 +232,17 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
                 .as_ref()
                 .map(|node| Self::convert_node_to_i32(node)),
         };
-        *RED_BLACK_TREE.write() = converted_tree;
-        self.insert_delay(200).await;
+        if converted_tree.root.is_some() {
+            if state {
+                *STATUS.write() = status.to_string();
+                if pos {
+                    self.update_sizes();
+                    self.update_positions();
+                    *RBTREE.write() = converted_tree;
+                    self.insert_delay(delay).await;
+                }
+            }
+        }
     }
 
     fn convert_node_to_i32(node: &Box<Node<T>>) -> Box<Node<i32>> {
@@ -227,11 +255,6 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
             x: node.x,
             y: node.y,
         })
-    }
-
-    async fn update_status(&self, status: &str, delay: i32) {
-        *STATUS.write() = status.to_string();
-        self.insert_delay(delay).await;
     }
 
     async fn insert_delay(&self, delay: i32) {

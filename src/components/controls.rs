@@ -1,6 +1,7 @@
 use crate::components::ui::button::Button;
 use crate::components::ui::input::Input;
 use crate::store::CONTROLS;
+use crate::store::RBTREE;
 use crate::store::RED_BLACK_TREE;
 use crate::store::SELECTED_TREE;
 use crate::store::TREE_STATES;
@@ -40,6 +41,7 @@ pub fn Controls() -> Element {
                   *disabled.write() = true;
                   spawn(async move {
                     RED_BLACK_TREE.write().insert(node_val).await;
+                    *RBTREE.write() = RED_BLACK_TREE.read().clone();
                     *disabled.write() = false;
                   });
                 }
