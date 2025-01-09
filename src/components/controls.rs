@@ -15,7 +15,7 @@ pub fn Controls() -> Element {
 
     rsx! {
       div {
-        class: "max-sm:overflow-scroll flex flex-col gap-6 border-2 border-gray-300 shadow-lg items-center justify-between w-1/4 rounded-xl p-6 bg-white",
+        class: "max-sm:overflow-scroll flex flex-col gap-6 border-2 border-gray-200 shadow-lg items-center justify-between w-[20%] rounded-xl p-6 bg-white",
 
         div {
           class: "flex flex-col justify-start gap-6",
@@ -45,6 +45,7 @@ pub fn Controls() -> Element {
                 TREE_STATES.write().clear();
                 *RED_BLACK_TREE.write() = Default::default();
               },
+              select {  }
               option { value: "", selected: true, disabled: true, "Select an Algorithm" }
               option { "Red Black Tree" }
               option { "Binomial Heap" }
@@ -67,6 +68,7 @@ pub fn Controls() -> Element {
                 } else {
                   "bg-emerald-500 hover:bg-emerald-600 text-white shadow-md".to_string()
                 }),
+                disabled: *disabled.read(),
                 onclick: move |_| {
                   let selected_tree = SELECTED_TREE.read().clone();
                   let node_val = *addNode.read();
@@ -75,7 +77,7 @@ pub fn Controls() -> Element {
                     "Red Black Tree" => {
                       *disabled.write() = true;
                       spawn(async move {
-                        RED_BLACK_TREE.write().insert(node_val).await;
+                        RED_BLACK_TREE.write().insert(node_val);
                         *RBTREE.write() = RED_BLACK_TREE.read().clone();
                         *disabled.write() = false;
                       });
@@ -111,7 +113,7 @@ pub fn Controls() -> Element {
                   let selected_tree = SELECTED_TREE.read().clone();
                   match selected_tree.as_str() {
                     "Red Black Tree" => {
-                      // RED_BLACK_TREE.write().delete(&(*deleteNode.read()));
+                      RED_BLACK_TREE.write().delete(*deleteNode.read());
                     }
                     "Binomial Heap" => {
                       // Call Binomial Heap deletion function
@@ -143,7 +145,7 @@ pub fn Controls() -> Element {
                 class: "flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer",
                 r#type: "range",
                 min: "0",
-                max: "1000",
+                max: "100",
                 value: CONTROLS.read().speed.read().to_string(),
                 oninput: move |e| {
                     CONTROLS.write().speed.set(e.value().parse().unwrap_or(0));
