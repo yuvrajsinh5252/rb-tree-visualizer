@@ -1,6 +1,7 @@
 use crate::algorithm::tree::RBTree;
 use dioxus::prelude::*;
 
+#[derive(Debug, Clone)]
 pub struct Controls {
     pub ind: Signal<i32>,
     pub speed: Signal<i32>,
