@@ -1,5 +1,4 @@
-use crate::algorithm::tree::Node;
-use crate::algorithm::tree::Tree;
+use crate::algorithm::node::Node;
 use crate::components::canvas_control::CanvasControls;
 use crate::store::RBTREE;
 use crate::store::SVG_VIEW_BOX;
@@ -7,35 +6,6 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn Canvas() -> Element {
-    let mut red_black_tree = use_signal(|| {
-        let mut tree = Tree::new();
-        tree.insert(50);
-        tree.insert(30);
-        tree.insert(70);
-        tree.insert(20);
-        tree.insert(40);
-        tree.insert(60);
-        tree.insert(80);
-        tree.insert(20);
-        tree.insert(40);
-        tree.insert(60);
-        tree.insert(70);
-        tree.insert(20);
-        tree.insert(40);
-        tree.insert(60);
-        tree.insert(80);
-        tree.insert(20);
-        tree.insert(40);
-        tree.insert(60);
-        tree.insert(80);
-        tree.update_sizes();
-        tree
-    });
-
-    use_effect(move || {
-        red_black_tree.set(RBTREE.read().clone());
-    });
-
     rsx! {
         div {
             class: "flex bg-white flex-col items-center relative justify-center w-full rounded-lg border-2 border-gray-200 shadow-xl",
@@ -64,15 +34,13 @@ pub fn Canvas() -> Element {
                     }
                 }
 
-                if let Some(ref root) = red_black_tree.read().root {
-                    {render_node(root.clone(), 100.0, 20.0)}
-                }
+                {render_node(&*(RBTREE.read().root).borrow(), 100.0, 20.0)}
             }
         }
     }
 }
 
-fn render_node(node: Box<Node<i32>>, x: f32, y: f32) -> Element {
+fn render_node(node: &Node<i32>, x: f32, y: f32) -> Element {
     let v_gap = 30.0;
     let h_gap = 4.0 * node.size;
 
@@ -93,7 +61,7 @@ fn render_node(node: Box<Node<i32>>, x: f32, y: f32) -> Element {
                 fill: "white",
                 font_size: "4",
                 class: "transition-all duration-500 ease-in-out transform-gpu origin-center",
-                "{node.value}"
+                "{node.key}"
             }
 
             if let Some(ref left) = &node.left {
@@ -107,7 +75,7 @@ fn render_node(node: Box<Node<i32>>, x: f32, y: f32) -> Element {
                     marker_end: "url(#arrowhead)",
                     class: "transition-all duration-300 ease-in-out",
                 }
-                {render_node(left.clone(), x - h_gap, y + v_gap)}
+                {render_node(&left.borrow(), x - h_gap, y + v_gap)}
             }
 
             if let Some(ref right) = &node.right {
@@ -121,7 +89,7 @@ fn render_node(node: Box<Node<i32>>, x: f32, y: f32) -> Element {
                     marker_end: "url(#arrowhead)",
                     class: "transition-all duration-300 ease-in-out",
                 }
-                {render_node(right.clone(), x + h_gap, y + v_gap)}
+                {render_node(&right.borrow(), x + h_gap, y + v_gap)}
             }
         }
     }

@@ -2,7 +2,6 @@ use crate::components::ui::button::Button;
 use crate::components::ui::input::Input;
 use crate::store::CONTROLS;
 use crate::store::RBTREE;
-use crate::store::RED_BLACK_TREE;
 use crate::store::SELECTED_TREE;
 use crate::store::TREE_STATES;
 use dioxus::prelude::*;
@@ -32,7 +31,7 @@ pub fn Controls() -> Element {
 
                 match selected_tree.as_str() {
                   "Red Black Tree" => {
-                    *RED_BLACK_TREE.write() = Default::default();
+                    *RBTREE.write() = Default::default();
                   }
                   "Binomial Heap" => {
                     // Call Binomial Heap clear function
@@ -43,7 +42,7 @@ pub fn Controls() -> Element {
                 *SELECTED_TREE.write() = e.value();
                 CONTROLS.write().ind.set(-1);
                 TREE_STATES.write().clear();
-                *RED_BLACK_TREE.write() = Default::default();
+                *RBTREE.write() = Default::default();
               },
               select {  }
               option { value: "", selected: true, disabled: true, "Select an Algorithm" }
@@ -75,12 +74,9 @@ pub fn Controls() -> Element {
 
                   match selected_tree.as_str() {
                     "Red Black Tree" => {
-                      *disabled.write() = true;
-                      spawn(async move {
-                        RED_BLACK_TREE.write().insert(node_val);
-                        *RBTREE.write() = RED_BLACK_TREE.read().clone();
-                        *disabled.write() = false;
-                      });
+                      let mut current_tree = RBTREE.read().clone();
+                      current_tree.insert(node_val);
+                      *RBTREE.write() = current_tree;
                     }
                     "Binomial Heap" => {
                       // Call Binomial Heap insertion function
@@ -88,7 +84,7 @@ pub fn Controls() -> Element {
                     _ => {}
                   }
 
-                  TREE_STATES.write().push(RED_BLACK_TREE.read().clone());
+                  TREE_STATES.write().push(RBTREE.read().clone());
                   CONTROLS.write().ind.set(TREE_STATES.read().len() as i32 - 1);
                   addNode.set(0);
                 }
@@ -111,9 +107,16 @@ pub fn Controls() -> Element {
                 }),
                 onclick: move |_| {
                   let selected_tree = SELECTED_TREE.read().clone();
+                  let delete_val = *deleteNode.read();
+
                   match selected_tree.as_str() {
                     "Red Black Tree" => {
-                      RED_BLACK_TREE.write().delete(*deleteNode.read());
+                      let mut current_tree = RBTREE.read().clone();
+                      current_tree.delete(delete_val);
+
+                      // Update the trees after modification
+                      *RBTREE.write() = current_tree.clone();
+                      *RBTREE.write() = current_tree;
                     }
                     "Binomial Heap" => {
                       // Call Binomial Heap deletion function
@@ -121,7 +124,7 @@ pub fn Controls() -> Element {
                     _ => {}
                   }
 
-                  TREE_STATES.write().push(RED_BLACK_TREE.read().clone());
+                  TREE_STATES.write().push(RBTREE.read().clone());
                   CONTROLS.write().ind.set(TREE_STATES.read().len() as i32 - 1);
                   deleteNode.set(0);
                 }
@@ -173,7 +176,7 @@ pub fn Controls() -> Element {
                   let selected_tree = SELECTED_TREE.read().clone();
                   match selected_tree.as_str() {
                     "Red Black Tree" => {
-                      *RED_BLACK_TREE.write() = TREE_STATES.read()[(curr_ind - 1) as usize].clone();
+                      *RBTREE.write() = TREE_STATES.read()[(curr_ind - 1) as usize].clone();
                     }
                     "Binomial Heap" => {
                       // Call Binomial Heap prev function
@@ -190,7 +193,7 @@ pub fn Controls() -> Element {
               value: "Clear",
               color: Some("bg-gray-500 hover:bg-gray-600 text-white shadow-md".to_string()),
               onclick: move |_| {
-                RED_BLACK_TREE.write().clear_tree();
+                RBTREE.write().clear();
                 TREE_STATES.write().clear();
                 CONTROLS.write().ind.set(-1);
               },
@@ -205,7 +208,7 @@ pub fn Controls() -> Element {
                   let selected_tree = SELECTED_TREE.read().clone();
                   match selected_tree.as_str() {
                     "Red Black Tree" => {
-                      *RED_BLACK_TREE.write() = TREE_STATES.read()[(curr_ind + 1) as usize].clone();
+                      *RBTREE.write() = TREE_STATES.read()[(curr_ind + 1) as usize].clone();
                     }
                     "Binomial Heap" => {
                       // Call Binomial Heap next function
