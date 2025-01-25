@@ -14,7 +14,7 @@ pub fn Input(props: InputProps) -> Element {
         Some(true) => "border-2 border-red-500 focus:border-red-600",
         _ => "border-2 border-gray-300 focus:border-blue-500 hover:border-gray-400",
     };
-    let input_classes = format!(
+    let _input_classes = format!(
         "{} {} bg-white shadow-sm hover:shadow focus:shadow-md",
         base_classes, border_classes
     );
@@ -23,11 +23,7 @@ pub fn Input(props: InputProps) -> Element {
         input {
             r#type: "text",
             placeholder: "{props.placeholder}",
-<<<<<<< HEAD
-            class: input_classes,
-=======
             class: "w-full border-2 p-2 rounded-md outline-none transition-all duration-200 focus:border-blue-500 hover:border-gray-400 bg-white/50 backdrop-blur-sm",
->>>>>>> 7674bd0 (revert back)
             value: if props.value != 0 { props.value.to_string() } else { "".to_string() },
             oninput: move |event| {
                 if let Ok(value) = event.value().parse::<i32>() {
