@@ -39,33 +39,14 @@ impl<T: Ord> Node<T> {
         }
     }
 
-    fn is_red(node: &Option<Box<Node<T>>>) -> bool {
-        node.as_ref().map_or(false, |n| n.color == Color::Red)
+    fn is_red(node: Option<&Box<Node<T>>>) -> bool {
+        node.map_or(false, |n| n.color == Color::Red)
     }
 }
 
 impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
     pub fn new() -> Self {
         RBTree { root: None }
-    }
-
-    pub async fn insert(&mut self, value: T) {
-        println!("Inserting value: {}", value);
-        if self.root.is_none() {
-            self.root = Some(Box::new(Node::new(value)));
-            self.update_tree_state(true, true, "Created new root node", 1000)
-                .await;
-        } else {
-            let root = self.root.take().unwrap();
-            self.root = Box::pin(self.insert_recursive(Some(root), value)).await;
-        }
-
-        if let Some(root) = &mut self.root {
-            root.color = Color::Black;
-        }
-
-        self.update_tree_state(true, true, "Insertion complete, tree is now balanced", 1000)
-            .await;
     }
 
     pub fn clear_tree(&mut self) {
@@ -86,107 +67,105 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         update_recursive(&mut self.root);
     }
 
-    async fn insert_recursive(
-        &mut self,
-        node: Option<Box<Node<T>>>,
-        value: T,
-    ) -> Option<Box<Node<T>>> {
-        if node.is_none() {
-            self.update_tree_state(true, false, "Creating new node", 1000)
+    pub async fn insert(&mut self, value: T) {
+        println!("Inserting value: {}", value);
+        if self.root.is_none() {
+            let mut new_node = Box::new(Node::new(value));
+            new_node.color = Color::Black; // Root must be black
+            self.root = Some(new_node);
+            self.update_tree_state(true, true, "Created new root node", 1000)
                 .await;
-            return Some(Box::new(Node::new(value)));
+            return;
         }
 
-        let mut current = node.unwrap();
-        match value.cmp(&current.value) {
+        let root = self.root.take().unwrap();
+        self.root = Some(Box::pin(self.insert_recursive(root, value)).await);
+
+        // Ensure root is black
+        if let Some(root) = &mut self.root {
+            root.color = Color::Black;
+        }
+
+        self.update_tree_state(true, true, "Insertion complete", 1000)
+            .await;
+    }
+
+    async fn insert_recursive(&mut self, mut node: Box<Node<T>>, value: T) -> Box<Node<T>> {
+        match value.cmp(&node.value) {
             Ordering::Less => {
-                self.update_tree_state(
-                    true,
-                    true,
-                    &format!("{} is less than {}, moving left", value, current.value),
-                    1000,
-                )
-                .await;
-                current.left = Box::pin(self.insert_recursive(current.left.take(), value)).await;
+                if let Some(left) = node.left.take() {
+                    let new_left = Box::pin(self.insert_recursive(left, value)).await;
+                    node.left = Some(new_left);
+                } else {
+                    self.update_tree_state(true, false, "Creating new left node", 1000)
+                        .await;
+                    node.left = Some(Box::new(Node::new(value)));
+                }
             }
             Ordering::Greater => {
-                self.update_tree_state(
-                    true,
-                    true,
-                    &format!("{} is greater than {}, moving right", value, current.value),
-                    1000,
-                )
-                .await;
-                current.right = Box::pin(self.insert_recursive(current.right.take(), value)).await;
+                if let Some(right) = node.right.take() {
+                    let new_right = Box::pin(self.insert_recursive(right, value)).await;
+                    node.right = Some(new_right);
+                } else {
+                    self.update_tree_state(true, false, "Creating new right node", 1000)
+                        .await;
+                    node.right = Some(Box::new(Node::new(value)));
+                }
             }
             Ordering::Equal => {
-                self.update_tree_state(
-                    true,
-                    true,
-                    &format!("Value {} already exists", value),
-                    1000,
-                )
-                .await;
-                return Some(current);
+                node.value = value;
+                return node;
             }
         }
 
-        if Node::is_red(&current.right) && !Node::is_red(&current.left) {
-            self.update_tree_state(true, false, "Performing left rotation for balancing", 0)
-                .await;
-            current = self.rotate_left(current).await;
+        // Fix Red-Black tree violations
+        if Node::is_red(node.right.as_ref()) && !Node::is_red(node.left.as_ref()) {
+            node = Box::pin(self.rotate_left(node)).await;
         }
-        if Node::is_red(&current.left) && Node::is_red(&current.left.as_ref().unwrap().left) {
-            self.update_tree_state(true, false, "Performing right rotation for balancing", 0)
-                .await;
-            current = self.rotate_right(current).await;
+        if Node::is_red(node.left.as_ref())
+            && node
+                .left
+                .as_ref()
+                .map_or(false, |n| Node::is_red(n.left.as_ref()))
+        {
+            node = Box::pin(self.rotate_right(node)).await;
         }
-        if Node::is_red(&current.left) && Node::is_red(&current.right) {
-            self.update_tree_state(true, false, "Flipping colors to maintain black height", 0)
-                .await;
-            self.flip_colors(&mut current).await;
+        if Node::is_red(node.left.as_ref()) && Node::is_red(node.right.as_ref()) {
+            self.flip_colors(&mut node);
         }
 
-        Some(current)
+        node
     }
 
     async fn rotate_left(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        let node_val = node.value.clone();
-        let mut right = node.right.unwrap();
-        node.right = right.left.take();
-        right.left = Some(node);
-        right.color = right.left.as_ref().unwrap().color;
-        right.left.as_mut().unwrap().color = Color::Red;
-
-        self.update_tree_state(
-            true,
-            true,
-            &format!("Rotating left at node {}", node_val),
-            1000,
-        )
-        .await;
-        right
+        if let Some(mut right) = node.right.take() {
+            node.right = right.left.take();
+            right.left = Some(node);
+            right.color = right.left.as_ref().unwrap().color;
+            right.left.as_mut().unwrap().color = Color::Red;
+            self.update_tree_state(true, true, "Rotating left", 1000)
+                .await;
+            right
+        } else {
+            node
+        }
     }
 
     async fn rotate_right(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
-        let node_val = node.value.clone();
-        let mut left = node.left.unwrap();
-        node.left = left.right.take();
-        left.right = Some(node);
-        left.color = left.right.as_ref().unwrap().color;
-        left.right.as_mut().unwrap().color = Color::Red;
-        self.update_tree_state(
-            true,
-            true,
-            &format!("Rotating right at node {}", node_val),
-            1000,
-        )
-        .await;
-        left
+        if let Some(mut left) = node.left.take() {
+            node.left = left.right.take();
+            left.right = Some(node);
+            left.color = left.right.as_ref().unwrap().color;
+            left.right.as_mut().unwrap().color = Color::Red;
+            self.update_tree_state(true, true, "Rotating right", 1000)
+                .await;
+            left
+        } else {
+            node
+        }
     }
 
-    async fn flip_colors(&mut self, node: &mut Box<Node<T>>) {
-        let node_val = node.value.clone();
+    fn flip_colors(&mut self, node: &mut Box<Node<T>>) {
         node.color = Color::Red;
         if let Some(left) = &mut node.left {
             left.color = Color::Black;
@@ -194,40 +173,152 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
         if let Some(right) = &mut node.right {
             right.color = Color::Black;
         }
-        self.update_tree_state(
-            true,
-            false,
-            &format!("Flipping colors at node {}", node_val),
-            1000,
-        )
-        .await;
+    }
+
+    pub async fn delete(&mut self, value: T) {
+        if self.root.is_none() {
+            self.update_tree_state(true, true, "Tree is empty", 1000)
+                .await;
+            return;
+        }
+
+        let root = self.root.take().unwrap();
+        let new_root = Box::pin(self.delete_recursive(root, value)).await;
+        self.root = Some(new_root);
+
+        // Ensure root is black
+        if let Some(root) = &mut self.root {
+            root.color = Color::Black;
+        }
+
+        self.update_tree_state(true, true, "Deletion complete", 1000)
+            .await;
+    }
+
+    async fn delete_recursive(&mut self, mut node: Box<Node<T>>, value: T) -> Box<Node<T>> {
+        match value.cmp(&node.value) {
+            Ordering::Less => {
+                if let Some(left) = node.left.take() {
+                    let new_left = Box::pin(self.delete_recursive(left, value)).await;
+                    node.left = Some(new_left);
+                    self.balance_after_delete_left(node).await
+                } else {
+                    node
+                }
+            }
+            Ordering::Greater => {
+                if let Some(right) = node.right.take() {
+                    let new_right = Box::pin(self.delete_recursive(right, value)).await;
+                    node.right = Some(new_right);
+                    self.balance_after_delete_right(node).await
+                } else {
+                    node
+                }
+            }
+            Ordering::Equal => match (node.left.take(), node.right.take()) {
+                (None, None) => node,
+                (Some(left), None) => {
+                    let mut child = left;
+                    child.color = Color::Black;
+                    child
+                }
+                (None, Some(right)) => {
+                    let mut child = right;
+                    child.color = Color::Black;
+                    child
+                }
+                (Some(left), Some(right)) => {
+                    let successor = self.find_min(&right);
+                    let mut new_node = Box::new(Node::new(successor.clone()));
+                    new_node.color = node.color;
+                    new_node.left = Some(left);
+                    new_node.right = Some(Box::pin(self.delete_recursive(right, successor)).await);
+                    self.balance_after_delete_right(new_node).await
+                }
+            },
+        }
+    }
+
+    fn find_min(&self, node: &Box<Node<T>>) -> T {
+        let mut current = node;
+        while let Some(left) = &current.left {
+            current = left;
+        }
+        current.value.clone()
+    }
+
+    async fn balance_after_delete_left(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
+        if Node::is_red(node.right.as_ref()) {
+            node = Box::pin(self.rotate_left(node)).await;
+        }
+        if let Some(right) = &node.right {
+            if !Node::is_red(right.left.as_ref()) && !Node::is_red(right.right.as_ref()) {
+                self.flip_colors(&mut node);
+            } else {
+                if Node::is_red(right.left.as_ref()) {
+                    if let Some(mut right) = node.right.take() {
+                        right = Box::pin(self.rotate_right(right)).await;
+                        node.right = Some(right);
+                    }
+                }
+                if let Some(right) = &node.right {
+                    if Node::is_red(right.right.as_ref()) {
+                        node = Box::pin(self.rotate_left(node)).await;
+                        self.flip_colors(&mut node);
+                    }
+                }
+            }
+        }
+        node
+    }
+
+    async fn balance_after_delete_right(&mut self, mut node: Box<Node<T>>) -> Box<Node<T>> {
+        if Node::is_red(node.left.as_ref()) {
+            node = Box::pin(self.rotate_right(node)).await;
+        }
+        if let Some(left) = &node.left {
+            if !Node::is_red(left.left.as_ref()) && !Node::is_red(left.right.as_ref()) {
+                self.flip_colors(&mut node);
+            } else {
+                if Node::is_red(left.right.as_ref()) {
+                    if let Some(mut left) = node.left.take() {
+                        left = Box::pin(self.rotate_left(left)).await;
+                        node.left = Some(left);
+                    }
+                }
+                if let Some(left) = &node.left {
+                    if Node::is_red(left.left.as_ref()) {
+                        node = Box::pin(self.rotate_right(node)).await;
+                        self.flip_colors(&mut node);
+                    }
+                }
+            }
+        }
+        node
     }
 
     pub fn update_positions(&mut self) {
-        fn update_positions_recursive<T: Ord>(node: &mut Box<Node<T>>, x: f32, y: f32) {
-            let v_gap = 35.0;
-            let h_gap = 4.5 * (node.size as f32);
-
-            node.x = x;
-            node.y = y;
-
-            if let Some(left) = &mut node.left {
-                update_positions_recursive(left, x - h_gap, y + v_gap);
-            }
-            if let Some(right) = &mut node.right {
-                update_positions_recursive(right, x + h_gap, y + v_gap);
-            }
-        }
-
         if let Some(root) = &mut self.root {
-            update_positions_recursive(root, 100.0, 20.0);
+            Self::update_positions_recursive(root, 100.0, 20.0);
         }
     }
 
-    pub async fn update_tree_state(&mut self, state: bool, pos: bool, status: &str, delay: i32)
-    where
-        T: Clone + Into<i32>,
-    {
+    fn update_positions_recursive(node: &mut Box<Node<T>>, x: f32, y: f32) {
+        let v_gap = 35.0;
+        let h_gap = 4.5 * (node.size as f32);
+
+        node.x = x;
+        node.y = y;
+
+        if let Some(left) = &mut node.left {
+            Self::update_positions_recursive(left, x - h_gap, y + v_gap);
+        }
+        if let Some(right) = &mut node.right {
+            Self::update_positions_recursive(right, x + h_gap, y + v_gap);
+        }
+    }
+
+    pub async fn update_tree_state(&mut self, state: bool, pos: bool, status: &str, delay: i32) {
         let converted_tree: RBTree<i32> = RBTree {
             root: self
                 .root
@@ -235,7 +326,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
                 .map(|node| Self::convert_node_to_i32(node)),
         };
 
-        if let Some(_) = converted_tree.root {
+        if converted_tree.root.is_some() {
             if state {
                 *STATUS.write() = status.to_string();
                 if pos {
@@ -243,7 +334,13 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
                     self.update_positions();
 
                     let mut states = TREE_STATES.read().clone();
-                    states.push(converted_tree.clone());
+                    let updated_tree = RBTree {
+                        root: self
+                            .root
+                            .as_ref()
+                            .map(|node| Self::convert_node_to_i32(node)),
+                    };
+                    states.push(updated_tree.clone());
                     *TREE_STATES.write() = states;
                     CONTROLS.write().ind.set(TREE_STATES.len() as i32 - 1);
 

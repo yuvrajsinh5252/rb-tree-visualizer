@@ -128,7 +128,14 @@ pub fn Controls() -> Element {
               onclick: move |_| {
                   let selected_tree = SELECTED_TREE.read().clone();
                   match selected_tree.as_str() {
-                      "Red Black Tree" => {}
+                      "Red Black Tree" => {
+                          *disabled.write() = true;
+                          spawn(async move {
+                              RED_BLACK_TREE.write().delete(*deleteNode.read()).await;
+                              *RBTREE.write() = RED_BLACK_TREE.read().clone();
+                              *disabled.write() = false;
+                          });
+                      }
                       "Binomial Heap" => {}
                       _ => {}
                   }
