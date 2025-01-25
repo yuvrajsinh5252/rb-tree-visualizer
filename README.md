@@ -1,6 +1,6 @@
 # Red Black Tree Visualizer
 
-A visualizer for red black trees built with dioxus.
+A visualizer for red black trees built with dioxus and rust.
 
 ## Preview
 

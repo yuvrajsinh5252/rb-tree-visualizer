@@ -8,7 +8,11 @@ use dioxus::prelude::*;
 pub fn Canvas() -> Element {
     rsx! {
         div {
+<<<<<<< HEAD
             class: "flex bg-white flex-col items-center relative justify-center w-full rounded-lg border-2 border-gray-200 shadow-xl",
+=======
+            class: "flex flex-col border-2 items-center relative justify-center max-sm:min-h-[75%] w-full rounded-lg",
+>>>>>>> 7674bd0 (revert back)
             CanvasControls {}
             svg {
                 class: "overflow-visible p-8",
