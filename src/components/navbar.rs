@@ -7,9 +7,10 @@ pub fn Navbar() -> Element {
         div { class: "text-white flex justify-center items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer",
           img {
             class: "h-8 w-8 transform hover:scale-105 transition-transform",
-            src: "assets/favicon.ico",
+            src: "assets/rbtree.png",
             alt: "logo",
           }
+          // i { class: "fas fa-tree text-blue-500 text-2xl" }
           span { class: "text-lg font-bold tracking-wide", "Red Black Tree Visualizer" }
         }
         div { class: "flex gap-4",

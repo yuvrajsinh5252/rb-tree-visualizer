@@ -50,6 +50,7 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
     }
 
     pub async fn insert(&mut self, value: T) {
+        println!("Inserting value: {}", value);
         if self.root.is_none() {
             self.root = Some(Box::new(Node::new(value)));
             self.update_tree_state(true, true, "Created new root node", 1000)

@@ -6,24 +6,12 @@ use crate::store::RED_BLACK_TREE;
 use crate::store::SELECTED_TREE;
 use crate::store::TREE_STATES;
 use dioxus::prelude::*;
-use web_sys::console;
-use web_sys::wasm_bindgen::JsValue;
 
 #[component]
 pub fn Controls() -> Element {
     let mut addNode: Signal<i32> = use_signal(|| 0);
     let mut deleteNode: Signal<i32> = use_signal(|| 0);
     let mut disabled: Signal<bool> = use_signal(|| false);
-
-    console::log_1(&JsValue::from_str(&format!(
-        "Controls: {:?}",
-        *CONTROLS.read(),
-    )));
-
-    console::log_1(&JsValue::from_str(&format!(
-        "length: {:?}",
-        TREE_STATES.read().len(),
-    )));
 
     rsx! {
       div { class: "flex flex-col gap-6 bg-gradient-to-br from-slate-50 to-slate-100 max-sm:overflow-scroll max-sm:w-full shadow-lg rounded-xl p-6 w-1/4 relative border border-slate-200",
@@ -110,12 +98,6 @@ pub fn Controls() -> Element {
                       "Binomial Heap" => {}
                       _ => {}
                   }
-                  console::log_1(&JsValue::from_str(&format!(
-                      "after inserting: {:?}",
-                      *CONTROLS.read(),
-                  )));
-                  TREE_STATES.write().push(RBTREE.read().clone());
-                  CONTROLS.write().ind.set(TREE_STATES.read().len() as i32 - 1);
                   addNode.set(0);
               },
               disabled: *CONTROLS.read().ind.read() != TREE_STATES.read().len() as i32 - 1
@@ -150,8 +132,6 @@ pub fn Controls() -> Element {
                       "Binomial Heap" => {}
                       _ => {}
                   }
-                  TREE_STATES.write().push(RED_BLACK_TREE.read().clone());
-                  CONTROLS.write().ind.set(TREE_STATES.read().len() as i32 - 1);
                   deleteNode.set(0);
               },
               disabled: *CONTROLS.read().ind.read() != TREE_STATES.read().len() as i32 - 1,
@@ -193,7 +173,13 @@ pub fn Controls() -> Element {
           div { class: "grid grid-cols-3 gap-3",
             Button {
               value: "⟸ Prev",
-              color: Some("bg-blue-500 hover:bg-blue-600 active:bg-blue-700 w-full".to_string()),
+              color: Some(
+                  if *CONTROLS.read().ind.read() == 0 {
+                      "bg-gray-400 cursor-not-allowed".to_string()
+                  } else {
+                      "bg-blue-500 hover:bg-blue-600 active:bg-blue-700".to_string()
+                  },
+              ),
               onclick: move |_| {
                   let curr_ind = *CONTROLS.read().ind.read();
                   if (curr_ind - 1) >= 0 && (curr_ind - 1) < TREE_STATES.read().len() as i32 {
@@ -220,11 +206,17 @@ pub fn Controls() -> Element {
                   TREE_STATES.write().clear();
                   CONTROLS.write().ind.set(-1);
               },
-              disabled: false,
+              disabled: *CONTROLS.read().ind.read() == -1,
             }
             Button {
               value: "Next ⟹",
-              color: Some("bg-blue-500 hover:bg-blue-600 active:bg-blue-700 w-full".to_string()),
+              color: Some(
+                  if *CONTROLS.read().ind.read() == TREE_STATES.read().len() as i32 - 1 {
+                      "bg-gray-400 cursor-not-allowed".to_string()
+                  } else {
+                      "bg-blue-500 hover:bg-blue-600 active:bg-blue-700".to_string()
+                  },
+              ),
               onclick: move |_| {
                   let curr_ind = *CONTROLS.read().ind.read();
                   if (curr_ind + 1) < TREE_STATES.read().len() as i32 {
@@ -241,7 +233,7 @@ pub fn Controls() -> Element {
                       CONTROLS.write().ind.set(curr_ind + 1);
                   }
               },
-              disabled: false,
+              disabled: *CONTROLS.read().ind.read() == TREE_STATES.read().len() as i32 - 1,
             }
           }
         }
