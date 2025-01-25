@@ -14,8 +14,7 @@ pub fn Canvas() -> Element {
     });
 
     rsx! {
-        div {
-            class: "flex relative flex-col items-center justify-center w-full max-sm:min-h-[75%] rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg p-4 border border-slate-200",
+        div { class: "flex relative flex-col items-center justify-center w-full max-sm:min-h-[75%] rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg p-4 border border-slate-200",
             CanvasControls {}
             svg {
                 class: "overflow-scroll p-4",
@@ -27,16 +26,13 @@ pub fn Canvas() -> Element {
                     marker {
                         id: "arrowhead",
                         view_box: "0 0 10 10",
-                        ref_x: "11",
+                        ref_x: "13.2",
                         ref_y: "1.5",
-                        marker_width: "30",
-                        marker_height: "18",
+                        marker_width: "12",
+                        marker_height: "16",
                         orient: "auto",
                         class: "transition-all duration-300 ease-in-out",
-                        path {
-                            d: "M0,0 L0,3 L3,1.5 z",
-                            fill: "#475569"
-                        }
+                        path { d: "M0,0 L0,3 L3,1.5 z", fill: "#475569" }
                     }
                 }
 
@@ -61,9 +57,9 @@ fn render_node(node: Box<Node<i32>>) -> Element {
                 cx: x.to_string(),
                 cy: y.to_string(),
                 r: "10",
-                stroke: if format!("{:?}", node.color ) == "Red" { "#991b1b" } else { "#1f2937" },
+                stroke: if format!("{:?}", node.color) == "Red" { "#991b1b" } else { "#1f2937" },
                 stroke_width: "1.5",
-                fill: if format!("{:?}", node.color ) == "Red" { "#ef4444" } else { "#475569" },
+                fill: if format!("{:?}", node.color) == "Red" { "#ef4444" } else { "#475569" },
                 class: "transition-all duration-300 ease-in-out cursor-pointer hover:filter hover:brightness-110 hover:shadow-lg",
             }
             text {

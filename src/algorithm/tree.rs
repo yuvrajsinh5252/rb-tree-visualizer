@@ -1,4 +1,5 @@
-use crate::store::{RBTREE, STATUS};
+use crate::store::{CONTROLS, RBTREE, STATUS, TREE_STATES};
+use dioxus::prelude::*;
 use std::cmp::Ordering;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{js_sys, window};
@@ -203,8 +204,8 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
 
     pub fn update_positions(&mut self) {
         fn update_positions_recursive<T: Ord>(node: &mut Box<Node<T>>, x: f32, y: f32) {
-            let v_gap = 30.0;
-            let h_gap = 4.0 * (node.size as f32);
+            let v_gap = 35.0;
+            let h_gap = 4.5 * (node.size as f32);
 
             node.x = x;
             node.y = y;
@@ -232,14 +233,24 @@ impl<T: Ord + std::fmt::Display + Clone + Into<i32>> RBTree<T> {
                 .as_ref()
                 .map(|node| Self::convert_node_to_i32(node)),
         };
-        if converted_tree.root.is_some() {
+
+        if let Some(_) = converted_tree.root {
             if state {
                 *STATUS.write() = status.to_string();
                 if pos {
                     self.update_sizes();
                     self.update_positions();
+
+                    let mut states = TREE_STATES.read().clone();
+                    states.push(converted_tree.clone());
+                    *TREE_STATES.write() = states;
+                    CONTROLS.write().ind.set(TREE_STATES.len() as i32 - 1);
+
                     *RBTREE.write() = converted_tree;
-                    self.insert_delay(delay).await;
+
+                    if delay > 0 {
+                        self.insert_delay(delay).await;
+                    }
                 }
             }
         }

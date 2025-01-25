@@ -12,7 +12,10 @@ title = "rbt-visualiser"
 [web.resource]
 
 # Additional CSS style files
-style = ["assets/tailwind.css"]
+style = [
+  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
+  "assets/tailwind.css",
+]
 
 # Additional JavaScript files
 script = []

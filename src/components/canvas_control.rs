@@ -12,28 +12,20 @@ pub fn CanvasControls() -> Element {
     });
 
     rsx! {
-        div {
-            class: "absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md px-4 py-2",
-            h1 {
-                class: "text-sm font-semibold text-gray-700",
+        div { class: "absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md px-4 py-2",
+            h1 { class: "text-sm font-semibold text-gray-700",
                 "Algorithm: "
                 span { class: "text-blue-600", "{SELECTED_TREE.read()}" }
             }
         }
 
-        div {
-            class: "absolute top-4 left-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md px-4 py-2",
-            h1 {
-                class: "text-sm font-semibold flex items-center gap-2",
+        div { class: "absolute top-4 left-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md px-4 py-2",
+            h1 { class: "text-sm font-semibold flex items-center gap-2",
                 "Status: "
-                span {
-                    class: "px-2 py-1 bg-gray-100 rounded-md text-gray-700",
-                    "{state}"
-                }
+                span { class: "px-2 py-1 bg-gray-100 rounded-md text-gray-700", "{state}" }
             }
         }
-        div {
-            class: "absolute bottom-4 right-4 flex gap-2",
+        div { class: "absolute bottom-4 right-4 flex gap-2",
             Button {
                 value: "+",
                 color: "bg-blue-600",
@@ -47,7 +39,7 @@ pub fn CanvasControls() -> Element {
                     svg_view_box[2] -= width_reduction;
                     svg_view_box[3] -= height_reduction;
                     *SVG_VIEW_BOX.write() = svg_view_box as Vec<f32>;
-                }
+                },
             }
             Button {
                 value: "-",
@@ -62,7 +54,7 @@ pub fn CanvasControls() -> Element {
                     svg_view_box[2] += width_increase;
                     svg_view_box[3] += height_increase;
                     *SVG_VIEW_BOX.write() = svg_view_box as Vec<f32>;
-                }
+                },
             }
         }
     }
