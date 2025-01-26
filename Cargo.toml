@@ -10,6 +10,7 @@ edition = "2021"
 dioxus = { version = "0.6.0", features = ["router"] }
 wasm-bindgen-futures = "0.4.49"
 web-sys = "0.3.76"
+slab = "0.4.8"
 
 [features]
 default = ["web"]

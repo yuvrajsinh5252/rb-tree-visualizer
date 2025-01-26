@@ -38,7 +38,7 @@ pub fn Controls() -> Element {
                   let selected_tree = SELECTED_TREE.read().clone();
                   match selected_tree.as_str() {
                       "Red Black Tree" => {
-                          *RBTREE.write() = Default::default();
+                          RBTREE.write().clear_tree();
                       }
                       "Binomial Heap" => {}
                       _ => {}
@@ -46,7 +46,7 @@ pub fn Controls() -> Element {
                   *SELECTED_TREE.write() = e.value();
                   CONTROLS.write().ind.set(-1);
                   TREE_STATES.write().clear();
-                  *RBTREE.write() = Default::default();
+                  RBTREE.write().clear_tree();
               },
               option {
                 value: "",
@@ -90,7 +90,7 @@ pub fn Controls() -> Element {
                       "Red Black Tree" => {
                           *disabled.write() = true;
                           spawn(async move {
-                              RED_BLACK_TREE.write().insert(node_val).await;
+                              RED_BLACK_TREE.write().insert(node_val.try_into().unwrap());
                               *RBTREE.write() = RED_BLACK_TREE.read().clone();
                               *disabled.write() = false;
                           });
@@ -128,14 +128,7 @@ pub fn Controls() -> Element {
               onclick: move |_| {
                   let selected_tree = SELECTED_TREE.read().clone();
                   match selected_tree.as_str() {
-                      "Red Black Tree" => {
-                          *disabled.write() = true;
-                          spawn(async move {
-                              RED_BLACK_TREE.write().delete(*deleteNode.read()).await;
-                              *RBTREE.write() = RED_BLACK_TREE.read().clone();
-                              *disabled.write() = false;
-                          });
-                      }
+                      "Red Black Tree" => {}
                       "Binomial Heap" => {}
                       _ => {}
                   }

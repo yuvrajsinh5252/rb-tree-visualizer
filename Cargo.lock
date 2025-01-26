@@ -3309,6 +3309,7 @@ name = "rbt-visualiser"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "slab",
  "wasm-bindgen-futures",
  "web-sys",
 ]
