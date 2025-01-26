@@ -1,5 +1,9 @@
+use dioxus::prelude::*;
+use dioxus::signals::Writable;
 use slab::Slab;
 use std::ops::{Index, IndexMut};
+
+use crate::store::{CONTROLS, TREE_STATES};
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct Pointer(usize);
@@ -60,20 +64,6 @@ impl RBTree {
         }
     }
 
-    // pub fn height(&self) -> u32 {
-    //     self.height_below(self.root)
-    // }
-
-    // fn height_below(&self, node: Pointer) -> u32 {
-    //     if node.is_null() {
-    //         0
-    //     } else {
-    //         let left = self.height_below(self[node].left);
-    //         let right = self.height_below(self[node].right);
-    //         cmp::max(left, right) + 1
-    //     }
-    // }
-
     pub fn clear_tree(&mut self) {
         self.slab.clear();
         self.root = Pointer::null();
@@ -97,6 +87,11 @@ impl RBTree {
         }
 
         self.update_sizes();
+        TREE_STATES.write().push(self.clone());
+        CONTROLS
+            .write()
+            .ind
+            .set(TREE_STATES.read().len() as i32 - 1);
     }
 
     fn update_sizes(&mut self) {

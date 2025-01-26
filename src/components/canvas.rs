@@ -57,8 +57,8 @@ fn render_tree(tree: &RBTree, pointer: Pointer, x: f32, y: f32) -> Element {
     }
 
     let node = &tree[pointer];
-    let v_gap = 35.0;
-    let h_gap = 4.5 * (node.size as f32);
+    let v_gap = 30.0;
+    let h_gap = 4.0 * (node.size as f32);
 
     rsx! {
         g {

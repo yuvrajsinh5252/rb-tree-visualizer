@@ -8,6 +8,7 @@ mod store;
 
 use dioxus::prelude::*;
 use layout::Layout;
+use pages::about::About;
 use pages::home::Home;
 use pages::not_found::NotFound;
 
@@ -15,6 +16,8 @@ use pages::not_found::NotFound;
 enum Route {
     #[route("/")]
     Home {},
+    #[route("/about")]
+    About {},
     #[route("/:..segments")]
     NotFound { segments: Vec<String> },
 }

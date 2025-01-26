@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn Navbar() -> Element {
     rsx! {
-      nav { class: "flex justify-between w-full fixed top-0 px-20 items-center bg-gray-800 h-[3.5rem] shadow-lg z-50 transition-all duration-200",
+      nav { class: "flex justify-between w-full fixed top-0 px-20 items-center bg-slate-800 h-[3.5rem] shadow-lg z-50 transition-all duration-200",
         div { class: "text-white flex justify-center items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer",
           img {
             class: "h-8 w-8 transform hover:scale-105 transition-transform",
